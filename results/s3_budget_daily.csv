@@ -1,0 +1,321 @@
+seed,strategy,day,spend_usd,budget_usd,over_budget
+0,NoRepLc,1,20.2918,19.7805,true
+0,NoRepLc,2,22.9141,19.7805,true
+0,NoRepLc,3,19.0409,19.7805,false
+0,NoRepLc,4,21.0394,19.7805,true
+0,TCDRM,1,15.0756,19.7805,false
+0,TCDRM,2,15.9617,19.7805,false
+0,TCDRM,3,16.1404,19.7805,false
+0,TCDRM,4,17.9613,19.7805,false
+0,Replicate-All,1,12.6494,19.7805,false
+0,Replicate-All,2,13.7247,19.7805,false
+0,Replicate-All,3,13.0270,19.7805,false
+0,Replicate-All,4,16.6958,19.7805,false
+0,P2,1,12.7881,19.7805,false
+0,P2,2,13.9332,19.7805,false
+0,P2,3,14.0403,19.7805,false
+0,P2,4,16.8870,19.7805,false
+0,P1+P2,1,12.7881,19.7805,false
+0,P1+P2,2,13.9332,19.7805,false
+0,P1+P2,3,13.1416,19.7805,false
+0,P1+P2,4,16.6958,19.7805,false
+0,P3+P2,1,12.7881,19.7805,false
+0,P3+P2,2,13.9332,19.7805,false
+0,P3+P2,3,14.0403,19.7805,false
+0,P3+P2,4,16.8870,19.7805,false
+0,TCDRM-Predictive,1,12.7881,19.7805,false
+0,TCDRM-Predictive,2,13.9332,19.7805,false
+0,TCDRM-Predictive,3,13.1416,19.7805,false
+0,TCDRM-Predictive,4,16.6958,19.7805,false
+0,Predictive sans contraintes,1,12.7881,19.7805,false
+0,Predictive sans contraintes,2,13.9332,19.7805,false
+0,Predictive sans contraintes,3,13.1416,19.7805,false
+0,Predictive sans contraintes,4,16.6958,19.7805,false
+1,NoRepLc,1,23.5452,20.0400,true
+1,NoRepLc,2,18.9032,20.0400,false
+1,NoRepLc,3,20.5056,20.0400,true
+1,NoRepLc,4,21.4248,20.0400,true
+1,TCDRM,1,15.7226,20.0400,false
+1,TCDRM,2,14.0707,20.0400,false
+1,TCDRM,3,13.7749,20.0400,false
+1,TCDRM,4,15.3457,20.0400,false
+1,Replicate-All,1,13.3606,20.0400,false
+1,Replicate-All,2,13.0675,20.0400,false
+1,Replicate-All,3,11.5780,20.0400,false
+1,Replicate-All,4,12.4261,20.0400,false
+1,P2,1,15.1058,20.0400,false
+1,P2,2,13.6307,20.0400,false
+1,P2,3,12.7688,20.0400,false
+1,P2,4,12.8920,20.0400,false
+1,P1+P2,1,15.1058,20.0400,false
+1,P1+P2,2,13.6307,20.0400,false
+1,P1+P2,3,12.8273,20.0400,false
+1,P1+P2,4,13.3304,20.0400,false
+1,P3+P2,1,15.1058,20.0400,false
+1,P3+P2,2,13.6307,20.0400,false
+1,P3+P2,3,12.7688,20.0400,false
+1,P3+P2,4,12.8920,20.0400,false
+1,TCDRM-Predictive,1,15.1058,20.0400,false
+1,TCDRM-Predictive,2,13.6307,20.0400,false
+1,TCDRM-Predictive,3,12.8273,20.0400,false
+1,TCDRM-Predictive,4,13.3304,20.0400,false
+1,Predictive sans contraintes,1,15.1058,20.0400,false
+1,Predictive sans contraintes,2,13.6307,20.0400,false
+1,Predictive sans contraintes,3,12.8273,20.0400,false
+1,Predictive sans contraintes,4,13.3304,20.0400,false
+2,NoRepLc,1,18.5237,18.2176,true
+2,NoRepLc,2,22.0003,18.2176,true
+2,NoRepLc,3,16.9076,18.2176,false
+2,NoRepLc,4,19.2741,18.2176,true
+2,TCDRM,1,13.4659,18.2176,false
+2,TCDRM,2,17.6111,18.2176,false
+2,TCDRM,3,14.0419,18.2176,false
+2,TCDRM,4,17.9466,18.2176,false
+2,Replicate-All,1,11.8505,18.2176,false
+2,Replicate-All,2,17.3176,18.2176,false
+2,Replicate-All,3,13.6486,18.2176,false
+2,Replicate-All,4,17.7657,18.2176,false
+2,P2,1,13.3686,18.2176,false
+2,P2,2,17.6836,18.2176,false
+2,P2,3,13.9274,18.2176,false
+2,P2,4,17.8842,18.2176,false
+2,P1+P2,1,13.3650,18.2176,false
+2,P1+P2,2,17.6836,18.2176,false
+2,P1+P2,3,13.9274,18.2176,false
+2,P1+P2,4,17.8755,18.2176,false
+2,P3+P2,1,13.3686,18.2176,false
+2,P3+P2,2,17.6836,18.2176,false
+2,P3+P2,3,13.9274,18.2176,false
+2,P3+P2,4,17.8842,18.2176,false
+2,TCDRM-Predictive,1,13.3650,18.2176,false
+2,TCDRM-Predictive,2,17.6836,18.2176,false
+2,TCDRM-Predictive,3,13.9274,18.2176,false
+2,TCDRM-Predictive,4,17.8755,18.2176,false
+2,Predictive sans contraintes,1,13.3650,18.2176,false
+2,Predictive sans contraintes,2,17.6836,18.2176,false
+2,Predictive sans contraintes,3,13.9274,18.2176,false
+2,Predictive sans contraintes,4,17.8755,18.2176,false
+3,NoRepLc,1,22.7185,19.9548,true
+3,NoRepLc,2,21.9976,19.9548,true
+3,NoRepLc,3,20.6707,19.9548,true
+3,NoRepLc,4,18.6332,19.9548,false
+3,TCDRM,1,16.0712,19.9548,false
+3,TCDRM,2,16.8481,19.9548,false
+3,TCDRM,3,15.6111,19.9548,false
+3,TCDRM,4,15.2348,19.9548,false
+3,Replicate-All,1,13.5164,19.9548,false
+3,Replicate-All,2,14.6914,19.9548,false
+3,Replicate-All,3,14.6182,19.9548,false
+3,Replicate-All,4,14.6769,19.9548,false
+3,P2,1,14.2517,19.9548,false
+3,P2,2,15.0297,19.9548,false
+3,P2,3,14.3698,19.9548,false
+3,P2,4,14.5409,19.9548,false
+3,P1+P2,1,14.2518,19.9548,false
+3,P1+P2,2,15.0189,19.9548,false
+3,P1+P2,3,14.3595,19.9548,false
+3,P1+P2,4,14.4788,19.9548,false
+3,P3+P2,1,14.2517,19.9548,false
+3,P3+P2,2,15.0297,19.9548,false
+3,P3+P2,3,14.3698,19.9548,false
+3,P3+P2,4,14.5409,19.9548,false
+3,TCDRM-Predictive,1,14.2518,19.9548,false
+3,TCDRM-Predictive,2,15.0189,19.9548,false
+3,TCDRM-Predictive,3,14.3595,19.9548,false
+3,TCDRM-Predictive,4,14.4788,19.9548,false
+3,Predictive sans contraintes,1,14.2518,19.9548,false
+3,Predictive sans contraintes,2,15.0189,19.9548,false
+3,Predictive sans contraintes,3,14.3595,19.9548,false
+3,Predictive sans contraintes,4,14.4788,19.9548,false
+4,NoRepLc,1,21.2357,20.0710,true
+4,NoRepLc,2,20.9780,20.0710,true
+4,NoRepLc,3,20.9925,20.0710,true
+4,NoRepLc,4,21.3034,20.0710,true
+4,TCDRM,1,15.8106,20.0710,false
+4,TCDRM,2,16.2408,20.0710,false
+4,TCDRM,3,15.5170,20.0710,false
+4,TCDRM,4,17.5824,20.0710,false
+4,Replicate-All,1,16.5083,20.0710,false
+4,Replicate-All,2,16.1688,20.0710,false
+4,Replicate-All,3,15.0379,20.0710,false
+4,Replicate-All,4,16.4083,20.0710,false
+4,P2,1,16.9155,20.0710,false
+4,P2,2,16.2098,20.0710,false
+4,P2,3,15.0379,20.0710,false
+4,P2,4,16.5258,20.0710,false
+4,P1+P2,1,16.9155,20.0710,false
+4,P1+P2,2,16.2098,20.0710,false
+4,P1+P2,3,15.0379,20.0710,false
+4,P1+P2,4,16.4432,20.0710,false
+4,P3+P2,1,16.9155,20.0710,false
+4,P3+P2,2,16.2098,20.0710,false
+4,P3+P2,3,15.0379,20.0710,false
+4,P3+P2,4,16.5258,20.0710,false
+4,TCDRM-Predictive,1,16.9155,20.0710,false
+4,TCDRM-Predictive,2,16.2098,20.0710,false
+4,TCDRM-Predictive,3,15.0379,20.0710,false
+4,TCDRM-Predictive,4,16.4432,20.0710,false
+4,Predictive sans contraintes,1,16.9155,20.0710,false
+4,Predictive sans contraintes,2,16.2098,20.0710,false
+4,Predictive sans contraintes,3,15.0379,20.0710,false
+4,Predictive sans contraintes,4,16.4432,20.0710,false
+5,NoRepLc,1,17.4159,18.7334,false
+5,NoRepLc,2,18.4454,18.7334,false
+5,NoRepLc,3,21.5364,18.7334,true
+5,NoRepLc,4,21.4796,18.7334,true
+5,TCDRM,1,12.7534,18.7334,false
+5,TCDRM,2,14.0236,18.7334,false
+5,TCDRM,3,19.1408,18.7334,true
+5,TCDRM,4,17.9725,18.7334,false
+5,Replicate-All,1,12.2933,18.7334,false
+5,Replicate-All,2,13.5669,18.7334,false
+5,Replicate-All,3,17.0901,18.7334,false
+5,Replicate-All,4,15.1038,18.7334,false
+5,P2,1,12.5902,18.7334,false
+5,P2,2,13.5669,18.7334,false
+5,P2,3,17.2166,18.7334,false
+5,P2,4,15.6884,18.7334,false
+5,P1+P2,1,12.5614,18.7334,false
+5,P1+P2,2,13.5669,18.7334,false
+5,P1+P2,3,17.0901,18.7334,false
+5,P1+P2,4,15.1038,18.7334,false
+5,P3+P2,1,12.5902,18.7334,false
+5,P3+P2,2,13.5669,18.7334,false
+5,P3+P2,3,17.2166,18.7334,false
+5,P3+P2,4,15.6884,18.7334,false
+5,TCDRM-Predictive,1,12.5614,18.7334,false
+5,TCDRM-Predictive,2,13.5669,18.7334,false
+5,TCDRM-Predictive,3,17.0901,18.7334,false
+5,TCDRM-Predictive,4,15.1038,18.7334,false
+5,Predictive sans contraintes,1,12.5614,18.7334,false
+5,Predictive sans contraintes,2,13.5669,18.7334,false
+5,Predictive sans contraintes,3,17.0901,18.7334,false
+5,Predictive sans contraintes,4,15.1038,18.7334,false
+6,NoRepLc,1,21.6184,17.5725,true
+6,NoRepLc,2,17.3588,17.5725,false
+6,NoRepLc,3,18.7096,17.5725,true
+6,NoRepLc,4,16.3026,17.5725,false
+6,TCDRM,1,15.3755,17.5725,false
+6,TCDRM,2,13.8932,17.5725,false
+6,TCDRM,3,15.2592,17.5725,false
+6,TCDRM,4,12.7812,17.5725,false
+6,Replicate-All,1,17.4909,17.5725,false
+6,Replicate-All,2,13.8808,17.5725,false
+6,Replicate-All,3,14.7480,17.5725,false
+6,Replicate-All,4,11.9625,17.5725,false
+6,P2,1,17.7389,17.5725,true
+6,P2,2,13.9836,17.5725,false
+6,P2,3,14.8863,17.5725,false
+6,P2,4,12.0051,17.5725,false
+6,P1+P2,1,17.7519,17.5725,true
+6,P1+P2,2,13.9453,17.5725,false
+6,P1+P2,3,14.8323,17.5725,false
+6,P1+P2,4,11.9619,17.5725,false
+6,P3+P2,1,17.7389,17.5725,true
+6,P3+P2,2,13.9836,17.5725,false
+6,P3+P2,3,14.8863,17.5725,false
+6,P3+P2,4,12.0051,17.5725,false
+6,TCDRM-Predictive,1,17.7519,17.5725,true
+6,TCDRM-Predictive,2,13.9453,17.5725,false
+6,TCDRM-Predictive,3,14.8323,17.5725,false
+6,TCDRM-Predictive,4,11.9619,17.5725,false
+6,Predictive sans contraintes,1,17.7519,17.5725,true
+6,Predictive sans contraintes,2,13.9453,17.5725,false
+6,Predictive sans contraintes,3,14.8323,17.5725,false
+6,Predictive sans contraintes,4,11.9619,17.5725,false
+7,NoRepLc,1,16.9513,19.3028,false
+7,NoRepLc,2,24.2421,19.3028,true
+7,NoRepLc,3,20.0262,19.3028,true
+7,NoRepLc,4,20.0554,19.3028,true
+7,TCDRM,1,13.1165,19.3028,false
+7,TCDRM,2,19.4860,19.3028,true
+7,TCDRM,3,16.4217,19.3028,false
+7,TCDRM,4,16.8555,19.3028,false
+7,Replicate-All,1,10.8005,19.3028,false
+7,Replicate-All,2,17.7460,19.3028,false
+7,Replicate-All,3,12.9554,19.3028,false
+7,Replicate-All,4,14.3079,19.3028,false
+7,P2,1,12.0574,19.3028,false
+7,P2,2,18.2948,19.3028,false
+7,P2,3,14.1031,19.3028,false
+7,P2,4,14.4556,19.3028,false
+7,P1+P2,1,12.0574,19.3028,false
+7,P1+P2,2,18.2948,19.3028,false
+7,P1+P2,3,14.2488,19.3028,false
+7,P1+P2,4,14.4608,19.3028,false
+7,P3+P2,1,12.0574,19.3028,false
+7,P3+P2,2,18.2948,19.3028,false
+7,P3+P2,3,14.1031,19.3028,false
+7,P3+P2,4,14.4556,19.3028,false
+7,TCDRM-Predictive,1,12.0574,19.3028,false
+7,TCDRM-Predictive,2,18.2948,19.3028,false
+7,TCDRM-Predictive,3,14.2488,19.3028,false
+7,TCDRM-Predictive,4,14.4608,19.3028,false
+7,Predictive sans contraintes,1,12.0574,19.3028,false
+7,Predictive sans contraintes,2,18.2948,19.3028,false
+7,Predictive sans contraintes,3,14.2326,19.3028,false
+7,Predictive sans contraintes,4,14.4608,19.3028,false
+8,NoRepLc,1,21.2502,17.4332,true
+8,NoRepLc,2,19.1629,17.4332,true
+8,NoRepLc,3,17.1967,17.4332,false
+8,NoRepLc,4,15.7934,17.4332,false
+8,TCDRM,1,16.0479,17.4332,false
+8,TCDRM,2,14.6412,17.4332,false
+8,TCDRM,3,15.1608,17.4332,false
+8,TCDRM,4,12.6160,17.4332,false
+8,Replicate-All,1,13.1456,17.4332,false
+8,Replicate-All,2,13.5278,17.4332,false
+8,Replicate-All,3,14.2096,17.4332,false
+8,Replicate-All,4,11.5267,17.4332,false
+8,P2,1,14.7036,17.4332,false
+8,P2,2,13.9559,17.4332,false
+8,P2,3,14.3448,17.4332,false
+8,P2,4,11.6869,17.4332,false
+8,P1+P2,1,14.7216,17.4332,false
+8,P1+P2,2,13.9559,17.4332,false
+8,P1+P2,3,14.3084,17.4332,false
+8,P1+P2,4,11.6869,17.4332,false
+8,P3+P2,1,14.7036,17.4332,false
+8,P3+P2,2,13.9559,17.4332,false
+8,P3+P2,3,14.3448,17.4332,false
+8,P3+P2,4,11.6869,17.4332,false
+8,TCDRM-Predictive,1,14.7216,17.4332,false
+8,TCDRM-Predictive,2,13.9559,17.4332,false
+8,TCDRM-Predictive,3,14.3084,17.4332,false
+8,TCDRM-Predictive,4,11.6869,17.4332,false
+8,Predictive sans contraintes,1,14.7216,17.4332,false
+8,Predictive sans contraintes,2,13.9559,17.4332,false
+8,Predictive sans contraintes,3,14.3084,17.4332,false
+8,Predictive sans contraintes,4,11.6869,17.4332,false
+9,NoRepLc,1,22.6166,18.3356,true
+9,NoRepLc,2,24.1266,18.3356,true
+9,NoRepLc,3,15.8162,18.3356,false
+9,NoRepLc,4,14.6429,18.3356,false
+9,TCDRM,1,17.4674,18.3356,false
+9,TCDRM,2,19.5030,18.3356,true
+9,TCDRM,3,12.5688,18.3356,false
+9,TCDRM,4,12.8458,18.3356,false
+9,Replicate-All,1,18.2460,18.3356,false
+9,Replicate-All,2,19.8462,18.3356,true
+9,Replicate-All,3,12.2112,18.3356,false
+9,Replicate-All,4,11.2758,18.3356,false
+9,P2,1,15.5182,18.3356,false
+9,P2,2,18.2650,18.3356,false
+9,P2,3,11.3221,18.3356,false
+9,P2,4,11.3083,18.3356,false
+9,P1+P2,1,15.9403,18.3356,false
+9,P1+P2,2,18.3188,18.3356,false
+9,P1+P2,3,11.7515,18.3356,false
+9,P1+P2,4,11.1205,18.3356,false
+9,P3+P2,1,15.5182,18.3356,false
+9,P3+P2,2,18.2650,18.3356,false
+9,P3+P2,3,11.3221,18.3356,false
+9,P3+P2,4,11.3083,18.3356,false
+9,TCDRM-Predictive,1,15.9403,18.3356,false
+9,TCDRM-Predictive,2,18.3188,18.3356,false
+9,TCDRM-Predictive,3,11.7515,18.3356,false
+9,TCDRM-Predictive,4,11.1205,18.3356,false
+9,Predictive sans contraintes,1,15.9403,18.3356,false
+9,Predictive sans contraintes,2,18.3188,18.3356,false
+9,Predictive sans contraintes,3,11.7515,18.3356,false
+9,Predictive sans contraintes,4,11.1172,18.3356,false
