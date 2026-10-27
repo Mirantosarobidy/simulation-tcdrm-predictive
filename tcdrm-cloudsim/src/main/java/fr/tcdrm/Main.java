@@ -64,7 +64,7 @@ public final class Main {
                 "scenario");
 
         // P1
-        System.out.println("P1 : protocole de validation (entraînement / validation / test sur semaines distinctes)");
+        System.out.println("P1 : protocole de validation (entraînement / validation / test sur des charges distinctes)");
         ForecastValidation fv = new ForecastValidation(c);
         fv.run();
         Lstm lstm = fv.best;

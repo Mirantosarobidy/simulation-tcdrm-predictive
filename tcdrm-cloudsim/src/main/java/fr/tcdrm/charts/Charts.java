@@ -327,8 +327,8 @@ public final class Charts {
             names.add((String) m.get("method"));
         }
         JFreeChart a = org.jfree.chart.ChartFactory.createBarChart(null, null,
-                "Erreur absolue moyenne (req/h, horizon 6 h)", ds, PlotOrientation.HORIZONTAL, false, false, false);
-        styleCategory(a, "MAE sur 3 semaines de test");
+                "Erreur absolue moyenne (accès par période, horizon 5 périodes)", ds, PlotOrientation.HORIZONTAL, false, false, false);
+        styleCategory(a, "MAE sur 3 charges de test");
         BarRenderer br = new BarRenderer() {
             @Override
             public java.awt.Paint getItemPaint(int row, int column) {
@@ -357,8 +357,7 @@ public final class Charts {
                 for (String[] t : tiers) vt.addValue((Double) m.get(t[0]), k, t[1]);
             }
         }
-        JFreeChart b = org.jfree.chart.ChartFactory.createBarChart(null, null, "MAE (req/h)", vt,
-                PlotOrientation.VERTICAL, true, false, false);
+        JFreeChart b = org.jfree.chart.ChartFactory.createBarChart(null, null, "MAE (accès par période)", vt, PlotOrientation.VERTICAL, true, false, false);
         styleCategory(b, "MAE selon le volume des séries (tiers)");
         BarRenderer r2 = (BarRenderer) b.getCategoryPlot().getRenderer();
         r2.setSeriesPaint(0, COL.get("TCDRM-Predictive"));
@@ -370,7 +369,7 @@ public final class Charts {
         r2.setDefaultItemLabelsVisible(true);
         r2.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 11));
         r2.setDefaultItemLabelPaint(INK2);
-        compose("p1_validation", "P1 — validation de la prédiction (entraînement, validation et test sur semaines distinctes)",
+        compose("p1_validation", "P1 — validation de la prédiction (entraînement, validation et test sur des charges distinctes)",
                 2, img(a, 680, 440), img(b, 680, 440));
     }
 

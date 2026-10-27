@@ -12,11 +12,11 @@ Sujet 2 (TCDRM-Predictive : P1 → P3 → P2) sur CloudSim 7.0.1.
 ## Lancer
 
 ```bash
-mvn -q compile exec:java                 # ~2 min ; écrit results/ et figures/
-mvn -q compile exec:java -Dexec.args=out # dossier de sortie au choix
+mvn -q compile exec:java                
+mvn -q compile exec:java -Dexec.args=out
 ```
 
-Pour changer un paramètre sans recompiler : copier `src/main/resources/tcdrm.properties`,
+Pour changer un paramètre sans recompiler : copier `tcdrm-cloudsim/src/main/resources/tcdrm.properties`,
 le modifier, puis `mvn -q exec:java -Dtcdrm.config=mon.properties`.
 
 Si `org.cloudbus.cloudsim:cloudsim:7.0.1` n'est pas résolu par votre dépôt Maven,
