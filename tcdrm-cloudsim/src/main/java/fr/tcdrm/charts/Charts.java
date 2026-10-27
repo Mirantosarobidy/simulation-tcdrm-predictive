@@ -227,13 +227,13 @@ public final class Charts {
     public void articleFigures(Map<String, List<Result>> article, String prefix, String[] strategies) throws IOException {
         shown = strategies;
         String tag = prefix.toUpperCase().replace("_", "") + " — ";
-        twoPanels(article, prefix + "fig2_replicas", tag + "Facteur de réplication (Fig. 2 de l'article)", "Nombre de réplicas",
+        twoPanels(article, prefix + "fig2_replicas", tag + "Facteur de réplication", "Nombre de réplicas",
                 r -> col(r, 14), true, Styler.LegendPosition.OutsideS);
-        twoPanels(article, prefix + "fig3_response_time", tag + "Temps de réponse — moyenne glissante sur 20 requêtes (Fig. 3)",
+        twoPanels(article, prefix + "fig3_response_time", tag + "Temps de réponse — moyenne glissante sur 20 requêtes",
                 "Temps de réponse (ms)", r -> rolling(col(r, 4), 20), false, Styler.LegendPosition.OutsideS);
-        twoPanels(article, prefix + "fig5_bw_cost_per_query", tag + "Coût de bande passante par requête — moyenne glissante (Fig. 5)",
+        twoPanels(article, prefix + "fig5_bw_cost_per_query", tag + "Coût de bande passante par requête — moyenne glissante",
                 "Coût BW ($ / requête)", r -> rolling(col(r, 6), 20), false, Styler.LegendPosition.OutsideS);
-        twoPanels(article, prefix + "fig6_bw_cumulative", tag + "Coût cumulé de bande passante (Fig. 6)", "Coût BW cumulé ($)",
+        twoPanels(article, prefix + "fig6_bw_cumulative", tag + "Coût cumulé de bande passante", "Coût BW cumulé ($)",
                 r -> cumsum(col(r, 6)), false, Styler.LegendPosition.OutsideS);
 
         // Fig. 4 : volumes (JFreeChart, barres groupées)
@@ -277,8 +277,8 @@ public final class Charts {
             sr.setDefaultItemLabelPaint(Color.WHITE);
             f7.add(img(c7, 640, 420));
         }
-        compose(prefix + "fig4_bw_volume", tag + "Volumes transférés sur 1000 requêtes (Fig. 4)", 2, f4.toArray(new BufferedImage[0]));
-        compose(prefix + "fig7_total_cost", tag + "Coût total pour le locataire sur 1000 requêtes (Fig. 7)", 2, f7.toArray(new BufferedImage[0]));
+        compose(prefix + "fig4_bw_volume", tag + "Volumes transférés sur 1000 requêtes", 2, f4.toArray(new BufferedImage[0]));
+        compose(prefix + "fig7_total_cost", tag + "Coût total pour le locataire sur 1000 requêtes", 2, f7.toArray(new BufferedImage[0]));
     }
 
     private void twoPanels(Map<String, List<Result>> article, String file, String title, String yl,
