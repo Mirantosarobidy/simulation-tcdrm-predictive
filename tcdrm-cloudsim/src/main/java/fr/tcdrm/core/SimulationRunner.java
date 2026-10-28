@@ -23,6 +23,8 @@ import java.util.function.Consumer;
 /** Lance une simulation CloudSim complète pour une stratégie et une charge données. */
 public final class SimulationRunner {
 
+    private static boolean traced = false;
+
     public static final class Options {
         public double psla, delPsla;
         public Integer deltaT;
@@ -53,7 +55,14 @@ public final class SimulationRunner {
 
     public static Result run(SimConfig c, Workload w, PlacementStrategy placement, String label, Options o) {
         try {
-            Log.disable();
+            boolean trace = traceThisRun(c, label);
+            if (trace) {
+                Log.setOutput(new java.io.FileOutputStream(c.str("cloudsim.log.file")));
+                Log.enable();
+            } else {
+                Log.disable();
+            }
+            CloudSim.init(1, Calendar.getInstance(), false, 1e-6);
             CloudSim.init(1, Calendar.getInstance(), false, 1e-6);
             MultiCloud cloud = new MultiCloud(c);
             Datacenter[] dcs = CloudFactory.createDatacenters(c, cloud);
@@ -80,6 +89,7 @@ public final class SimulationRunner {
             broker.submitGuestList(vms);
             CloudSim.startSimulation();
             CloudSim.stopSimulation();
+            if (trace) { Log.getOutput().flush(); Log.disable(); }
             List<Object[]> rows = new ArrayList<>(mgr.rows);
             rows.sort(Comparator.comparingInt(a -> (Integer) a[0]));
             if (rows.size() != w.queries.size()) {
@@ -179,5 +189,12 @@ public final class SimulationRunner {
         for (Object[] r : rows) if ((Integer) r[14] > 0) { first = (Integer) r[0] + 1; break; }
         s.put("first_replica_query", first == null ? "" : first);
         return s;
+    }
+
+    private static boolean traceThisRun(SimConfig c, String label) {
+        if (traced || !c.has("cloudsim.log") || !Boolean.parseBoolean(c.str("cloudsim.log"))) return false;
+        if (c.has("cloudsim.log.run") && !label.contains(c.str("cloudsim.log.run"))) return false;
+        traced = true;
+        return true;
     }
 }

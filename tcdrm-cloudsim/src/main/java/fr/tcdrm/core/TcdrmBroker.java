@@ -2,10 +2,7 @@ package fr.tcdrm.core;
 
 import fr.tcdrm.cloud.MultiCloud;
 import fr.tcdrm.workload.Query;
-import org.cloudbus.cloudsim.Cloudlet;
-import org.cloudbus.cloudsim.DatacenterBroker;
-import org.cloudbus.cloudsim.UtilizationModelFull;
-import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudActionTags;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.core.CloudSimTags;
@@ -120,6 +117,9 @@ public final class TcdrmBroker extends DatacenterBroker {
         cl.setGuestId(vm.getId());
         inflight.put(id, new Object[]{q, r, CloudSim.clock()});
         // les données distantes sont rapatriées avant l'exécution
+        Log.printlnConcat(CloudSim.clock(), ": ", getName(), ": requête ", q.qid, " (", q.kind, ") → Cloudlet #", id,
+                " → VM #", vm.getId(), " @ DC #", getVmsToDatacentersMap().get(vm.getId()),
+                ", rapatriement des données ", String.format("%.1f", r.dataLatencyMs), " ms");
         schedule(getVmsToDatacentersMap().get(vm.getId()), r.dataLatencyMs / 1000.0, CloudActionTags.CLOUDLET_SUBMIT, cl);
         cloudletsSubmitted++;
     }
@@ -133,8 +133,13 @@ public final class TcdrmBroker extends DatacenterBroker {
         Query q = (Query) inf[0];
         ReplicaManager.Routing r = (ReplicaManager.Routing) inf[1];
         double rtMs = (CloudSim.clock() - (Double) inf[2]) * 1000.0;
+        Log.printlnConcat(CloudSim.clock(), ": ", getName(), ": Cloudlet #", cl.getCloudletId(), " return received (requête ",
+                q.qid, ", temps de réponse ", String.format("%.1f", rtMs), " ms)");
+        Log.printlnConcat(CloudSim.clock(), ": ", getName(), ": The number of finished Cloudlets is:", returned + 1);
         double nowH = CloudSim.clock() / mgr.periodSeconds;
         for (ReplicaManager.Creation c : mgr.complete(q, r, rtMs, nowH)) {
+            Log.printlnConcat(CloudSim.clock(), ": ", getName(), ": création du réplica de la relation ", c.rel,
+                    " sur le site ", c.site, ", prêt dans ", String.format("%.1f", c.latencyMs), " ms");
             schedule(getId(), c.latencyMs / 1000.0, Tags.REPLICA_READY, new int[]{c.rel, c.site});
             pendingCopies++;
         }
