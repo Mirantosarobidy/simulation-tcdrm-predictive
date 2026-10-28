@@ -73,7 +73,7 @@ public final class TcdrmBroker extends DatacenterBroker {
         }
         started = true;
         double now = CloudSim.clock();
-        double lastH = queries.get(queries.size() - 1).tHours;
+        double lastH = queries.getLast().tHours;
         double ps = mgr.periodSeconds;
         for (Query q : queries) schedule(getId(), Math.max(0, q.tHours * ps - now), Tags.QUERY_ARRIVAL, q);
         for (int p = 0; p + 1 <= Math.floor(lastH); p++) {
@@ -84,25 +84,26 @@ public final class TcdrmBroker extends DatacenterBroker {
     @Override
     protected void processOtherEvent(SimEvent ev) {
         CloudSimTags tag = ev.getTag();
-        if (tag == Tags.QUERY_ARRIVAL) {
-            onArrival((Query) ev.getData());
-        } else if (tag == Tags.PERIOD_END) {
-            int p = (Integer) ev.getData();
-            mgr.endPeriod(p, nextQid());
-            if (priceChange != null && p + 1 == priceHour) priceChange.accept(mgr.cloud);
-        } else if (tag == Tags.REPLICA_READY) {
-            int[] rs = (int[]) ev.getData();
-            mgr.replicaReady(rs[0], rs[1]);
-            pendingCopies--;
-            maybeFinish();
-        } else {
-            super.processOtherEvent(ev);
+        switch (tag) {
+            case Tags.QUERY_ARRIVAL -> onArrival((Query) ev.getData());
+            case Tags.PERIOD_END -> {
+                int p = (Integer) ev.getData();
+                mgr.endPeriod(p, nextQid());
+                if (priceChange != null && p + 1 == priceHour) priceChange.accept(mgr.cloud);
+            }
+            case Tags.REPLICA_READY -> {
+                int[] rs = (int[]) ev.getData();
+                mgr.replicaReady(rs[0], rs[1]);
+                pendingCopies--;
+                maybeFinish();
+            }
+            case null, default -> super.processOtherEvent(ev);
         }
     }
 
     private int nextQid() {
         int done = returned + inflight.size();
-        return done < queries.size() ? queries.get(done).qid : queries.get(queries.size() - 1).qid;
+        return done < queries.size() ? queries.get(done).qid : queries.getLast().qid;
     }
 
     private void onArrival(Query q) {
@@ -119,7 +120,7 @@ public final class TcdrmBroker extends DatacenterBroker {
         // les données distantes sont rapatriées avant l'exécution
         Log.printlnConcat(CloudSim.clock(), ": ", getName(), ": requête ", q.qid, " (", q.kind, ") → Cloudlet #", id,
                 " → VM #", vm.getId(), " @ DC #", getVmsToDatacentersMap().get(vm.getId()),
-                ", rapatriement des données ", String.format("%.1f", r.dataLatencyMs), " ms");
+                ", rapatriement des données ", String.format("%.1f", r.dataLatencyMs), " ms, relations ", r.relations);
         schedule(getVmsToDatacentersMap().get(vm.getId()), r.dataLatencyMs / 1000.0, CloudActionTags.CLOUDLET_SUBMIT, cl);
         cloudletsSubmitted++;
     }
@@ -150,7 +151,7 @@ public final class TcdrmBroker extends DatacenterBroker {
     private void maybeFinish() {
         if (finished || returned < queries.size() || pendingCopies > 0) return;
         finished = true;
-        Query last = queries.get(queries.size() - 1);
+        Query last = queries.getLast();
         mgr.finish(last.tHours, last.qid, (int) Math.ceil(last.tHours / mgr.cycle));
         clearDatacenters();
         finishExecution();

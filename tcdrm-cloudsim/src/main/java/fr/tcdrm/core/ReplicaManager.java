@@ -39,6 +39,7 @@ public final class ReplicaManager {
         public double gbLocal, gbRegion, gbProvider, gbSync;
         public double interCloudCost;         // part non locale des transferts (lecture/écriture)
         public int period;
+        public String relations = "";
     }
 
     public final SimConfig cfg;
@@ -186,6 +187,7 @@ public final class ReplicaManager {
         if (q.isWrite()) {
             int d = q.writeRel, prim = cat.primary[d];
             double delta = cat.size[d] * cat.deltaFrac;
+            r.relations = "W" + d + "@" + cloud.name(prim) + "(" + cat.cls[d] + ")";
             r.bwCost += cloud.transferCost(exec, prim, delta);
             r.dataLatencyMs += cloud.latency(exec, prim, delta);
             addGb(r, cloud.level(exec, prim), delta);
@@ -208,6 +210,7 @@ public final class ReplicaManager {
                 selSum[d] += sel;
                 Set<Integer> ready = readyCopies(d);
                 int c = bestOf(ready, exec, cat.size[d]);
+                r.relations += (k > 0 ? ";" : "") + d + "@" + cloud.name(cat.primary[d]) + "<-" + cloud.name(c);
                 double tc = cloud.transferCost(c, exec, s);
                 r.bwCost += tc;
                 if (cloud.level(c, exec) != MultiCloud.Level.LOCAL) r.interCloudCost += tc;
@@ -223,7 +226,7 @@ public final class ReplicaManager {
                     checkPayback(rep, q.tHours);
                     if (rep.guaranteed) {
                         double[] sl = sla.get(q.kind);
-                        int nRel = Math.max(1, q.rels.length);
+                        int nRel = q.rels.length;
                         double tShare = (sl[0] - cfg.cpuTimeMs(q.kind)) / nRel;
                         double cShare = (sl[1] - cloud.cpuCost(exec, cfg.cloudletLength(q.kind))) / nRel;
                         auditReads++;
@@ -284,7 +287,7 @@ public final class ReplicaManager {
         }
         rows.add(new Object[]{q.qid, q.tHours, q.kind, cfg.regions.indexOf(q.origin), rtMs, r.cpuCost, r.bwCost,
                 r.syncCost, r.gbLocal, r.gbRegion, r.gbProvider, r.gbSync, violT, violC, nReplicas(), out.size(),
-                r.interCloudCost});
+                r.interCloudCost, r.relations});
         return out;
     }
 

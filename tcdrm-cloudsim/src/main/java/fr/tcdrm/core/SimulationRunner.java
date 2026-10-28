@@ -49,7 +49,7 @@ public final class SimulationRunner {
     }
 
     public static final String[] COLS = {"qid", "t", "kind", "origin", "rt", "cpu", "bw", "sync", "gb_local",
-            "gb_region", "gb_provider", "gb_sync", "viol_T", "viol_C", "n_replicas", "n_new", "ic_cost"};
+            "gb_region", "gb_provider", "gb_sync", "viol_T", "viol_C", "n_replicas", "n_new", "ic_cost", "relations"};
 
     private SimulationRunner() { }
 
