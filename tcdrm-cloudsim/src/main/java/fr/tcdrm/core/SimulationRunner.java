@@ -151,6 +151,13 @@ public final class SimulationRunner {
         s.put("replicas_final", m.nReplicas());
         s.put("thrash", m.thrash);
         s.put("thrash_rate_pct", 100.0 * m.thrash / Math.max(1, m.nCreated));
+        // décision de placement : temps moyen par appel (µs), nombre d'appels
+        s.put("decisions", m.placeCalls);
+        s.put("decision_us_mean", m.placeCalls == 0 ? "" : m.placeNanos / 1000.0 / m.placeCalls);
+        // saturation des fournisseurs et anti-thrashing
+        s.put("max_site_load", m.maxSiteLoad);
+        s.put("sites_used", m.sitesUsed.size());
+        s.put("retained", m.retained);
         // respect du budget (période = jour)
         int over = 0;
         double overspend = 0, maxRatio = 0;

@@ -58,6 +58,11 @@ public final class Charts {
         COL.put("P1+P2", new Color(0xeda100));
         COL.put("P3+P2", new Color(0xe87ba4));
         COL.put("Predictive sans contraintes", new Color(0x008300));
+        COL.put("P-U seul", new Color(0x0f8f8f));
+        COL.put("P-poids dynamiques", new Color(0xb8860b));
+        COL.put("P-saturation", new Color(0x9c27b0));
+        COL.put("P-anti-thrashing", new Color(0xd81b60));
+        COL.put("TCDRM-Predictive v2", new Color(0x6d3b0f));
     }
 
     static final Font F_BASE = new Font("SansSerif", Font.PLAIN, 13);
@@ -754,5 +759,121 @@ public final class Charts {
             }
         }
         return t / Math.max(1, n);
+    }
+    // Améliorations v2 : figures de vérification
+    /** Barres horizontales moyenne ± écart-type d'un indicateur, une barre par stratégie. */
+    private BufferedImage statBars(List<Map<String, Object>> sums, List<String> order, String key, String title,
+                                   String fmt, int w, int h) {
+        DefaultStatisticalCategoryDataset ds = new DefaultStatisticalCategoryDataset();
+        for (String st : order) {
+            List<Double> v = new ArrayList<>();
+            for (Map<String, Object> s : sums) {
+                if (st.equals(s.get("strategy")) && s.get(key) instanceof Number n) v.add(n.doubleValue());
+            }
+            double mean = v.stream().mapToDouble(d -> d).average().orElse(0);
+            double sd = Math.sqrt(v.stream().mapToDouble(d -> (d - mean) * (d - mean)).sum() / Math.max(1, v.size() - 1));
+            ds.add(mean, sd, "moyenne", st);
+        }
+        JFreeChart ch = new JFreeChart(new CategoryPlot(ds, new CategoryAxis(), new NumberAxis(), null));
+        ch.getCategoryPlot().setOrientation(PlotOrientation.HORIZONTAL);
+        ch.removeLegend();
+        StatisticalBarRenderer r = new StatisticalBarRenderer() {
+            @Override
+            public java.awt.Paint getItemPaint(int row, int column) {
+                return COL.getOrDefault(order.get(column), INK2);
+            }
+        };
+        r.setErrorIndicatorPaint(INK2);
+        r.setBarPainter(new StandardBarPainter());
+        r.setShadowVisible(false);
+        r.setItemMargin(0);
+        r.setMaximumBarWidth(0.16);
+        r.setDefaultItemLabelGenerator(new StandardCategoryItemLabelGenerator("{2}", new java.text.DecimalFormat(fmt)));
+        r.setDefaultItemLabelsVisible(true);
+        r.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+        r.setDefaultPositiveItemLabelPosition(new org.jfree.chart.labels.ItemLabelPosition(
+                org.jfree.chart.labels.ItemLabelAnchor.INSIDE9, org.jfree.chart.ui.TextAnchor.CENTER_LEFT));
+        ch.getCategoryPlot().setRenderer(r);
+        styleCategory(ch, title);
+        r.setDefaultItemLabelPaint(Color.WHITE);
+        return img(ch, w, h);
+    }
+
+    private void panels(String file, String title, List<Map<String, Object>> sums, List<String> order,
+                        String[][] metrics, int cols) throws IOException {
+        int h = 150 + 42 * order.size();
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String[] m : metrics) imgs.add(statBars(sums, order, m[0], m[1], m[2], 620, h));
+        compose(file, title, cols, imgs.toArray(new BufferedImage[0]));
+    }
+
+    public void v2Figures(List<Map<String, Object>> sums) throws IOException {
+        int n = (int) sums.stream().map(m -> m.get("seed")).distinct().count();
+        String sfx = " (moyenne ± écart-type sur " + n + " graines)";
+        panels("v2_dynamic_weights", "Poids dynamiques et politique « U seul »" + sfx, sums,
+                List.of("TCDRM-Predictive", "P-U seul", "P-poids dynamiques"), new String[][]{
+                        {"w_cost_mean", "Poids effectif du coût ω1", "0.000"},
+                        {"cost_placement", "Coût lié au placement ($)", "0.00"},
+                        {"sla_T_violation_pct", "Lectures au-dessus de TSLA (%)", "0.00"},
+                        {"max_day_pct_of_budget", "Cycle le plus cher (% du budget)", "0.0"}}, 2);
+        panels("v2_saturation", "Saturation des fournisseurs" + sfx, sums,
+                List.of("TCDRM", "TCDRM-Predictive", "P-saturation"), new String[][]{
+                        {"max_site_load", "Réplicas hébergés par le site le plus chargé", "0.0"},
+                        {"sites_used", "Sites ayant reçu au moins un réplica", "0.0"},
+                        {"rt_mean", "Temps de réponse moyen (ms)", "0.0"},
+                        {"cost_placement", "Coût lié au placement ($)", "0.00"}}, 2);
+        panels("v2_antithrashing", "Anti-thrashing (suppression prédictive)" + sfx, sums,
+                List.of("TCDRM", "TCDRM-Predictive", "P-anti-thrashing"), new String[][]{
+                        {"thrash", "Réplicas recréés moins d'un cycle après suppression", "0.0"},
+                        {"replicas_deleted", "Réplicas supprimés", "0.0"},
+                        {"cost_placement", "Coût lié au placement ($)", "0.00"},
+                        {"sla_T_violation_pct", "Lectures au-dessus de TSLA (%)", "0.00"}}, 2);
+        panels("v2_summary", "TCDRM-Predictive v2 : bilan" + sfx, sums,
+                List.of("NoRepLc", "TCDRM", "TCDRM-Predictive", "P-U seul", "P-poids dynamiques", "P-saturation",
+                        "P-anti-thrashing", "TCDRM-Predictive v2"), new String[][]{
+                        {"rt_mean", "Temps de réponse moyen (ms)", "0.0"},
+                        {"cost_placement", "Coût lié au placement ($)", "0.0"},
+                        {"sla_T_violation_pct", "Lectures au-dessus de TSLA (%)", "0.0"},
+                        {"thrash", "Réplicas recréés moins d'un cycle après suppression", "0.0"}}, 2);
+    }
+
+    /** Scalabilité : temps moyen d'une décision de placement et durée d'une simulation selon la taille. */
+    public void v2Scalability(List<Map<String, Object>> sc) throws IOException {
+        String[][] axes = {{"sites", "Nombre de sites (fournisseurs × 3 régions)", "decision_us_mean", "Temps d'une décision (µs)"},
+                {"sites", "Nombre de sites (fournisseurs × 3 régions)", "cand_per_decision", "Candidats évalués par décision P2"},
+                {"templates", "Nombre de modèles de requête", "decision_us_mean", "Temps d'une décision (µs)"},
+                {"queries", "Nombre de requêtes simulées", "wall_s", "Durée d'une simulation (s)"}};
+        String[] strat = {"TCDRM", "TCDRM-Predictive"};
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String[] ax : axes) {
+            XYChart c = xy(620, 400, ax[3], ax[1], ax[3]);
+            c.getStyler().setMarkerSize(8);
+            c.getStyler().setLegendPosition(Styler.LegendPosition.InsideNW);
+            c.getStyler().setXAxisDecimalPattern("#,##0");
+            c.getStyler().setYAxisMin(0.0);
+            for (String st : strat) {
+                java.util.TreeMap<Double, double[]> acc = new java.util.TreeMap<>();
+                for (Map<String, Object> s : sc) {
+                    if (!ax[0].equals(s.get("axis")) || !st.equals(s.get("strategy"))) continue;
+                    double x = ((Number) s.get("axis_value")).doubleValue();
+                    Object yv;
+                    if (ax[2].equals("wall_s")) yv = ((Number) s.get("wall_ms")).doubleValue() / 1000.0;
+                    else if (ax[2].equals("cand_per_decision")) yv = s.get("p2_decisions") instanceof Number dn && dn.doubleValue() > 0
+                            ? ((Number) s.get("p2_candidates")).doubleValue() / dn.doubleValue() : null;
+                    else yv = s.get(ax[2]);
+                    if (!(yv instanceof Number y)) continue;
+                    double[] a = acc.computeIfAbsent(x, k -> new double[2]);
+                    a[0] += y.doubleValue();
+                    a[1]++;
+                }
+                double[] x = new double[acc.size()], y = new double[acc.size()];
+                int i = 0;
+                for (var e : acc.entrySet()) { x[i] = e.getKey(); y[i++] = e.getValue()[0] / e.getValue()[1]; }
+                if (x.length > 0) mark(line(c, st, x, y, 2.2f));
+            }
+            imgs.add(img(c));
+        }
+        compose("v2_scalability", "Scalabilité de la décision de placement (moyenne sur 5 graines)", 2,
+                imgs.toArray(new BufferedImage[0]));
     }
 }
