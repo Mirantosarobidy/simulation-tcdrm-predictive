@@ -104,3 +104,22 @@ puis synchronisation ; à égalité complète, « aucun réplica » puis l'ordre
 La variante `Predictive sans contraintes` reproduit l'ancien P2 (filtre budget restant + amortissement)
 pour mesurer le coût des garanties.
 
+
+## Améliorations v2 de TCDRM-Predictive
+
+Quatre variantes optionnelles de P2 (`placement/PredictivePlacement.Options`), toutes désactivées dans
+`TCDRM-Predictive` : les résultats S1, S2 et S3 sont inchangés.
+
+| Variante | Mécanisme | Paramètres |
+| --- | --- | --- |
+| `P-U seul` | argmin U sur tous les candidats, sans filtre de Pareto | — |
+| `P-poids dynamiques` | ω_coût × (1 + β·u), u = dépense projetée du cycle / budget | `v2.dynBeta` |
+| `P-saturation` | 5e critère d'occupation + contrainte C6 (capacité par site) | `v2.satCapacity`, `v2.satWeight` |
+| `P-anti-thrashing` | l'algorithme 3 garde un réplica si P1 ou la saisonnalité prévoient son retour | `v2.retainFactor` |
+| `TCDRM-Predictive v2` | poids dynamiques + anti-thrashing | — |
+
+Scalabilité (`Main.scalability`) : temps de chaque décision de placement (`decision_us_mean`), en faisant
+varier le nombre de sites (fournisseurs synthétiques), de modèles de requête et de requêtes.
+
+Sorties : `results/v2_summary_all_seeds.csv`, `results/v2_scalability.csv` ; figures `v2_scalability.png`,
+`v2_dynamic_weights.png`, `v2_saturation.png`, `v2_antithrashing.png`, `v2_summary.png`.

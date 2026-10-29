@@ -51,6 +51,14 @@ public final class SimConfig {
 
     public boolean has(String k) { return p.getProperty(k) != null; }
 
+    /** Copie de la configuration avec quelques paramètres remplacés (études de scalabilité). */
+    public SimConfig with(Map<String, String> overrides) {
+        Properties q = new Properties();
+        q.putAll(p);
+        overrides.forEach(q::setProperty);
+        return new SimConfig(q);
+    }
+
     public double dbl(String k) { return Double.parseDouble(str(k)); }
 
     public int integer(String k) { return Integer.parseInt(str(k)); }

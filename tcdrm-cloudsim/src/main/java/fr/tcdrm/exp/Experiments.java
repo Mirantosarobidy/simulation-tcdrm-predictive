@@ -142,6 +142,54 @@ public final class Experiments {
                         "Predictive sans contraintes", new PopularityForecaster(c, lstm, "auto"), true, false)));
     }
 
+    // Améliorations v2 de TCDRM-Predictive (points 2 à 4)
+    PredictivePlacement.Options v2(boolean dyn, boolean weighted, boolean sat, boolean anti) {
+        PredictivePlacement.Options o = new PredictivePlacement.Options();
+        if (dyn) o.dynBeta = c.dbl("v2.dynBeta");
+        o.weightedOnly = weighted;
+        if (sat) { o.satCapacity = c.integer("v2.satCapacity"); o.satWeight = c.dbl("v2.satWeight"); }
+        o.antiThrash = anti;
+        if (anti) o.retainFactor = c.dbl("v2.retainFactor");
+        return o;
+    }
+
+    private Variant pv(String name, Lstm lstm, PredictivePlacement.Options o) {
+        return new Variant(name, () -> new PredictivePlacement(c, name, new PopularityForecaster(c, lstm, "auto"),
+                true, true, o));
+    }
+
+    public List<Variant> improvementVariants(Lstm lstm) {
+        return List.of(
+                new Variant("NoRepLc", () -> null),
+                new Variant("TCDRM", TcdrmPlacement::new),
+                new Variant("TCDRM-Predictive", () -> new PredictivePlacement(c, "TCDRM-Predictive",
+                        new PopularityForecaster(c, lstm, "auto"), true)),
+                pv("P-U seul", lstm, v2(false, true, false, false)),
+                pv("P-poids dynamiques", lstm, v2(true, false, false, false)),
+                pv("P-saturation", lstm, v2(false, false, true, false)),
+                pv("P-anti-thrashing", lstm, v2(false, false, false, true)),
+                pv("TCDRM-Predictive v2", lstm, v2(true, false, false, true)));
+    }
+
+    /** Fournisseurs synthétiques P4, P5, … : prix de Google ou d'AWS majorés de 2 % par fournisseur. */
+    public static Map<String, String> extraProviders(SimConfig c, int nProviders) {
+        Map<String, String> o = new LinkedHashMap<>();
+        List<String> provs = new ArrayList<>(c.providers);
+        for (int k = provs.size() + 1; k <= nProviders; k++) {
+            String p = "P" + k, base = k % 2 == 0 ? "Google" : "AWS";
+            double f = 1 + 0.02 * k;
+            for (String r : c.regions) {
+                o.put("cpu." + p + "." + r, String.valueOf(c.dbl("cpu." + base + "." + r) * f));
+                o.put("io." + p + "." + r, String.valueOf(c.dbl("io." + base + "." + r) * f));
+            }
+            o.put("bw.interRegion." + p, String.valueOf(c.dbl("bw.interRegion." + base) * f));
+            o.put("bw.interProvider." + p, String.valueOf(c.dbl("bw.interProvider." + base) * f));
+            provs.add(p);
+        }
+        o.put("providers", String.join(",", provs));
+        return o;
+    }
+
     public static final class DynamicRun {
         public final List<Result> results = new ArrayList<>();
         public Map<String, double[]> sla;
@@ -163,8 +211,11 @@ public final class Experiments {
             o.priceHour = c.integer("s3.priceChangePeriod");
             o.priceChange = Experiments::priceChange;
             PlacementStrategy p = v.make().get();
+            long t0 = System.nanoTime();
             Result r = SimulationRunner.run(c, w, p, v.name(), o);
+            r.summary.put("wall_ms", (System.nanoTime() - t0) / 1e6);
             r.summary.put("seed", seed);
+            if (p instanceof PredictivePlacement pp && pp.wCostN > 0) r.summary.put("w_cost_mean", pp.wCostSum / pp.wCostN);
             r.summary.put("write_prob", sp.writeProb);
             r.summary.put("budget_day", dr.budget);
             if (p instanceof PredictivePlacement pp && pp.forecaster() != null) {

@@ -82,6 +82,12 @@ public final class ReplicaManager {
     /** Audit des garanties : lectures servies par un réplica placé sous contraintes, et dépassements de part. */
     public long auditReads = 0, auditTViol = 0, auditCViol = 0;
     int nCreated = 0, nDeleted = 0, thrash = 0;
+    /** Temps passé dans la décision de placement (ns) et nombre d'appels. */
+    public long placeNanos = 0, placeCalls = 0;
+    /** Réplicas hébergés par site (création comprise) et charge maximale observée. */
+    int[] hosted;
+    int maxSiteLoad = 0, retained = 0;
+    final java.util.Set<Integer> sitesUsed = new java.util.HashSet<>();
 
     public ReplicaManager(SimConfig cfg, MultiCloud cloud, Catalog cat, PlacementStrategy placement,
                           String label, int nPeriods, double psla, double delPsla, Integer deltaT,
@@ -103,6 +109,7 @@ public final class ReplicaManager {
         firstPeriod = new int[n];
         java.util.Arrays.fill(firstPeriod, -1);
         counts = new float[n][nPeriods + 1][3];
+        hosted = new int[cloud.n];
         wcounts = new float[n][nPeriods + 1];
     }
 
@@ -137,6 +144,12 @@ public final class ReplicaManager {
     }
 
     public double daySpent() { return daySpent; }
+
+    /** Nombre de réplicas hébergés par le site (saturation des fournisseurs). */
+    public int hostedAt(int site) { return hosted[site]; }
+
+    /** Seuil de suppression de l'algorithme 3 (accès par période). */
+    public double deletionThreshold() { return delPsla; }
 
     public Double budgetPerDay() { return budgetPerDay; }
 
@@ -280,7 +293,11 @@ public final class ReplicaManager {
                 if (popularity(d) > psla && bestCopy(d, r.execSite, null) != r.execSite && !RD.contains(d)) RD.add(d);
             }
             if (!RD.isEmpty()) {
-                for (int[] pl : placement.place(this, q, r.execSite, RD, nowH)) {
+                long t0 = System.nanoTime();
+                List<int[]> pls = placement.place(this, q, r.execSite, RD, nowH);
+                placeNanos += System.nanoTime() - t0;
+                placeCalls++;
+                for (int[] pl : pls) {
                     if (!copySet(pl[0]).contains(pl[1])) out.add(createReplica(pl[0], pl[1], q, nowH));
                 }
             }
@@ -309,6 +326,9 @@ public final class ReplicaManager {
             rep.syncShare = placement.syncSharePerRead(this, d, site);
         }
         replicas.get(d).put(site, rep);
+        hosted[site]++;
+        maxSiteLoad = Math.max(maxSiteLoad, hosted[site]);
+        sitesUsed.add(site);
         extraCost.merge(q.qid, cost, Double::sum);
         daySpent += cost;
         createTotal += cost;
@@ -355,8 +375,11 @@ public final class ReplicaManager {
                 Replica m = e.getValue();
                 if (deltaT != null) {
                     m.below = m.hits < delPsla ? m.below + 1 : 0;
-                    if (m.below >= deltaT) {
+                    if (m.below >= deltaT && placement != null && placement.retain(this, d, e.getKey(), p)) {
+                        retained++;                       // anti-thrashing : la demande doit revenir
+                    } else if (m.below >= deltaT) {
                         it.remove();
+                        hosted[e.getKey()]--;
                         recordOutcome(m, p + 1, true);
                         deletedAt.put(key(d, e.getKey()), (double) (p + 1));
                         nDeleted++;

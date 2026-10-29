@@ -165,8 +165,70 @@ public final class Main {
         }
         Csv.writeMaps(res.resolve("s3_sensitivity.csv"), sens);
         charts.s3Sensitivity(sens);
+
+        // améliorations v2 : U seul, poids dynamiques, saturation, anti-thrashing
+        System.out.println("v2 : améliorations de TCDRM-Predictive (" + seeds + " graines)");
+        List<Map<String, Object>> v2 = new ArrayList<>();
+        for (int seed = 0; seed < seeds; seed++) {
+            for (Result r : ex.runDynamic(seed, S3Params.base(c), ex.improvementVariants(lstm)).results) v2.add(r.summary);
+        }
+        Csv.writeMaps(res.resolve("v2_summary_all_seeds.csv"), v2);
+        charts.v2Figures(v2);
+        printTable(v2, new String[]{"rt_mean", "cost_placement", "sla_T_violation_pct", "thrash", "replicas_created",
+                "max_site_load", "sites_used", "w_cost_mean", "decision_us_mean"}, null);
+
+        // scalabilité de la décision de placement
+        List<Map<String, Object>> sc = scalability(c, lstm);
+        Csv.writeMaps(res.resolve("v2_scalability.csv"), sc);
+        charts.v2Scalability(sc);
         System.out.printf("Terminé en %.0f s — résultats dans %s, figures dans %s%n",
                 (System.currentTimeMillis() - t0) / 1000.0, res.toAbsolutePath(), fig.toAbsolutePath());
+    }
+
+    /** Une dimension à la fois : sites (fournisseurs), modèles de requête, nombre de requêtes. */
+    static List<Map<String, Object>> scalability(SimConfig c, Lstm lstm) {
+        int seeds = c.integer("v2.scal.seeds");
+        List<Map<String, Object>> out = new ArrayList<>();
+        Object[][] grid = {
+                {"sites", new int[]{3, 6, 9, 12}}, {"templates", new int[]{12, 48, 192}},
+                {"queries", new int[]{3000, 6000, 12000}}};
+        // préchauffage de la JVM (non mesuré)
+        List<Variant> warm = new ArrayList<>();
+        for (Variant vr : new Experiments(c).dynamicVariants(lstm)) {
+            if (vr.name().equals("TCDRM") || vr.name().equals("TCDRM-Predictive")) warm.add(vr);
+        }
+        new Experiments(c).runDynamic(99, S3Params.base(c), warm);
+        for (Object[] g : grid) {
+            String axis = (String) g[0];
+            for (int v : (int[]) g[1]) {
+                Map<String, String> o = new LinkedHashMap<>();
+                switch (axis) {
+                    case "sites" -> o.putAll(Experiments.extraProviders(c, v));
+                    case "templates" -> o.put("s3.templates", String.valueOf(v));
+                    default -> o.put("s3.queries", String.valueOf(v));
+                }
+                SimConfig c2 = c.with(o);
+                Experiments e2 = new Experiments(c2);
+                List<Variant> vs = new ArrayList<>();
+                for (Variant vr : e2.dynamicVariants(lstm)) {
+                    if (vr.name().equals("TCDRM") || vr.name().equals("TCDRM-Predictive")) vs.add(vr);
+                }
+                for (int seed = 0; seed < seeds; seed++) {
+                    for (Result r : e2.runDynamic(seed, S3Params.base(c2), vs).results) {
+                        Map<String, Object> m = new LinkedHashMap<>();
+                        m.put("axis", axis);
+                        m.put("axis_value", axis.equals("sites") ? v * c2.regions.size() : v);
+                        m.put("sites", c2.nSites());
+                        m.put("templates", c2.integer("s3.templates"));
+                        m.put("queries", c2.integer("s3.queries"));
+                        m.putAll(r.summary);
+                        out.add(m);
+                    }
+                }
+                System.out.printf("  scalabilité %s = %d terminée%n", axis, v);
+            }
+        }
+        return out;
     }
 
     static String[] header(String... extra) {

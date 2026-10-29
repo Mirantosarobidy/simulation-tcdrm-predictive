@@ -31,12 +31,43 @@ public final class PredictivePlacement implements PlacementStrategy {
 
     public final Map<String, Long> stats = new LinkedHashMap<>();
 
+    /**
+     * Améliorations v2 (toutes désactivées par défaut, ce qui redonne exactement TCDRM-Predictive) :
+     * poids dynamiques, politique « U seul », saturation des fournisseurs, anti-thrashing.
+     */
+    public static final class Options {
+        /** Poids dynamiques : ω_coût × (1 + β·u), u = dépense projetée du cycle / budget ; 0 = poids fixes. */
+        public double dynBeta = 0;
+        /** Politique « Weighted » : argmin U sur tous les candidats, sans filtre de Pareto. */
+        public boolean weightedOnly = false;
+        /** Saturation : capacité en réplicas par site (0 = désactivée) et poids du 5e critère. */
+        public int satCapacity = 0;
+        public double satWeight = 0;
+        /** Anti-thrashing : l'algorithme 3 garde un réplica si P1 ou la saisonnalité prévoient son retour. */
+        public boolean antiThrash = false;
+        /** Demande prévue minimale pour garder un réplica, en fraction du seuil de suppression. */
+        public double retainFactor = 1.0;
+    }
+
+    private final Options opt;
+    /** Réplicas déjà choisis dans l'appel courant de place(), par site (saturation). */
+    private final Map<Integer, Integer> pendingHost = new java.util.HashMap<>();
+    /** Somme et nombre des poids de coût effectivement utilisés (poids dynamiques). */
+    public double wCostSum = 0;
+    public long wCostN = 0;
+
     public PredictivePlacement(SimConfig cfg, String name, PopularityForecaster forecaster, boolean useP3) {
         this(cfg, name, forecaster, useP3, true);
     }
 
     public PredictivePlacement(SimConfig cfg, String name, PopularityForecaster forecaster, boolean useP3,
                                boolean constrained) {
+        this(cfg, name, forecaster, useP3, constrained, new Options());
+    }
+
+    public PredictivePlacement(SimConfig cfg, String name, PopularityForecaster forecaster, boolean useP3,
+                               boolean constrained, Options opt) {
+        this.opt = opt;
         this.cfg = cfg;
         this.name = name;
         this.forecaster = forecaster;
@@ -51,7 +82,46 @@ public final class PredictivePlacement implements PlacementStrategy {
         this.H = cfg.integer("p2.horizon");
         this.maxPerRel = cfg.integer("p2.maxPerRel");
         for (String k : new String[]{"decisions", "candidates", "rejected_TSLA", "rejected_CSLA", "rejected_write_TSLA",
-                "rejected_budget", "rejected_amortization", "no_feasible_site", "placed", "ties"}) stats.put(k, 0L);
+                "rejected_budget", "rejected_amortization", "no_feasible_site", "placed", "ties", "front_multi"}) stats.put(k, 0L);
+        if (opt.satCapacity > 0) stats.put("rejected_saturation", 0L);
+        if (opt.antiThrash) stats.put("retained", 0L);
+    }
+
+    /** Poids effectifs : 4 critères (+ saturation) ; le poids du coût augmente avec la dépense projetée. */
+    private double[] weights(Double budget, double projected) {
+        int K = opt.satCapacity > 0 ? 5 : 4;
+        double[] wk = new double[K];
+        double f = opt.satCapacity > 0 ? 1 - opt.satWeight : 1;
+        for (int k = 0; k < 4; k++) wk[k] = w[k] * f;
+        if (K == 5) wk[4] = opt.satWeight;
+        if (opt.dynBeta > 0 && budget != null && !Double.isNaN(projected)) {
+            double u = Math.max(0, Math.min(1.5, projected / budget));
+            wk[0] *= 1 + opt.dynBeta * u;
+            double t = 0;
+            for (double x : wk) t += x;
+            for (int k = 0; k < K; k++) wk[k] /= t;
+        }
+        wCostSum += wk[0];
+        wCostN++;
+        return wk;
+    }
+
+    /** Anti-thrashing (algorithme 3 prédictif) : garder le réplica si la demande de sa région doit revenir. */
+    @Override
+    public boolean retain(ReplicaManager eng, int d, int site, int p) {
+        if (!opt.antiThrash) return false;
+        int g = cfg.regions.indexOf(eng.cloud.region(site));
+        double lam = 0, seas = 0;
+        if (forecaster != null) lam = forecaster.predict(eng.counts, d, p + 1)[g];   // P1 sur les τ prochaines périodes
+        int lo = p + 1 - eng.cycle;                                                    // même phase, cycle précédent
+        if (lo >= 0) {
+            int n = 0;
+            for (int t = lo; t < lo + H && t <= p; t++) { seas += eng.counts[d][t][g]; n++; }
+            seas /= Math.max(1, n);
+        }
+        boolean keep = Math.max(lam, seas) >= opt.retainFactor * eng.deletionThreshold();
+        if (keep) inc("retained");
+        return keep;
     }
 
     @Override
@@ -102,6 +172,7 @@ public final class PredictivePlacement implements PlacementStrategy {
         int[] execs = new int[3];
         for (int r = 0; r < 3; r++) execs[r] = cloud.execOf(cfg.regions.get(r));
         List<int[]> out = new ArrayList<>();
+        pendingHost.clear();
         for (int rk : RD) {
             double[] lam = demand(eng, rk, nowH);
             double tot = 0;
@@ -118,6 +189,7 @@ public final class PredictivePlacement implements PlacementStrategy {
                 if (s == null) break;
                 out.add(new int[]{rk, s});
                 copies.add(s);
+                pendingHost.merge(s, 1, Integer::sum);
                 inc("placed");
             }
         }
@@ -165,6 +237,8 @@ public final class PredictivePlacement implements PlacementStrategy {
             projected = eng.daySpent() + rate * hLeft;
         }
         double readsH = Math.max(tot * H, 1.0);          // lectures prévues sur τ (≥ 1)
+        double[] wk = weights(budget, projected);
+        int K = wk.length;
         List<Integer> cand = new ArrayList<>();
         List<double[]> objs = new ArrayList<>();
         double baseAccPerH = 0;
@@ -182,7 +256,13 @@ public final class PredictivePlacement implements PlacementStrategy {
             if (s < 0) baseAccPerH = accPerH;
             acc *= H;
             bw *= H;
-            double create = 0, store = 0, sync = 0, copyH = 0;
+            double create = 0, store = 0, sync = 0, copyH = 0, sat = 0;
+            if (s >= 0 && opt.satCapacity > 0) {
+                // C6 (saturation) : capacité du site ; 5e critère = occupation après placement
+                int load = eng.hostedAt(s) + pendingHost.getOrDefault(s, 0);
+                if (load >= opt.satCapacity) { inc("rejected_saturation"); continue; }
+                sat = (load + 1.0) / opt.satCapacity;
+            }
             if (s >= 0) {
                 int src = -1;
                 double bestC = 0;
@@ -226,7 +306,8 @@ public final class PredictivePlacement implements PlacementStrategy {
                 }
             }
             cand.add(s);
-            objs.add(new double[]{create + store + acc, rt, bw, sync});
+            objs.add(K == 5 ? new double[]{create + store + acc, rt, bw, sync, sat}
+                    : new double[]{create + store + acc, rt, bw, sync});
         }
         List<Integer> ok = new ArrayList<>();
         if (constrained) {
@@ -236,14 +317,15 @@ public final class PredictivePlacement implements PlacementStrategy {
             double base = objs.get(0)[0] + objs.get(0)[3];
             for (int i = 0; i < objs.size(); i++) if (i == 0 || objs.get(i)[0] + objs.get(i)[3] <= base) ok.add(i);
         }
-        // front de Pareto
+        // front de Pareto (politique « U seul » : tous les candidats admissibles)
         List<Integer> front = new ArrayList<>();
-        for (int i : ok) {
+        if (opt.weightedOnly) front.addAll(ok);
+        else for (int i : ok) {
             boolean dominated = false;
             for (int j : ok) {
                 if (j == i) continue;
                 boolean le = true, lt = false;
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < K; k++) {
                     if (objs.get(j)[k] > objs.get(i)[k]) le = false;
                     if (objs.get(j)[k] < objs.get(i)[k]) lt = true;
                 }
@@ -251,10 +333,11 @@ public final class PredictivePlacement implements PlacementStrategy {
             }
             if (!dominated) front.add(i);
         }
-        double[] lo = new double[4], hi = new double[4];
+        if (front.size() > 1) inc("front_multi");          // vrai arbitrage entre plusieurs candidats
+        double[] lo = new double[K], hi = new double[K];
         java.util.Arrays.fill(lo, Double.POSITIVE_INFINITY);
         java.util.Arrays.fill(hi, Double.NEGATIVE_INFINITY);
-        for (int i : ok) for (int k = 0; k < 4; k++) {
+        for (int i : ok) for (int k = 0; k < K; k++) {
             lo[k] = Math.min(lo[k], objs.get(i)[k]);
             hi[k] = Math.max(hi[k], objs.get(i)[k]);
         }
@@ -263,9 +346,9 @@ public final class PredictivePlacement implements PlacementStrategy {
         boolean tie = false;
         for (int i : front) {
             double u = 0;
-            for (int k = 0; k < 4; k++) {
+            for (int k = 0; k < K; k++) {
                 double rng = hi[k] - lo[k];
-                u += w[k] * (objs.get(i)[k] - lo[k]) / (rng > 1e-12 ? rng : 1.0);
+                u += wk[k] * (objs.get(i)[k] - lo[k]) / (rng > 1e-12 ? rng : 1.0);
             }
             if (best < 0) { best = i; bu = u; continue; }
             if (!constrained) {
