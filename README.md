@@ -7,7 +7,7 @@ Sujet 2 (TCDRM-Predictive : P1 → P3 → P2) sur CloudSim 7.0.1.
 | --- | --- |
 | S1 | Scénario de l'article : TCDRM (algorithmes 1-2-3) contre NoRepLc |
 | S2 | Même scénario, algorithme 2 remplacé par P1 → P3 → P2 |
-| S3 | Scénario dynamique en nombre de requêtes : 3 000 requêtes de la forme de l'article, périodes de 50 requêtes, cycles follow-the-sun de 750 requêtes, popularité non stationnaire, écritures, variation des prix (période 30), budget par cycle ; seuils de la Table 1 ; ablation P2 / P1+P2 / P3+P2 + sensibilité au taux d'écriture |
+| S3 | Scénario dynamique en nombre de requêtes : 3 000 requêtes de la forme de l'article, périodes de 50 requêtes, cycles follow-the-sun de 750 requêtes, popularité non stationnaire, écritures, variation des prix (période 30), budget par cycle ; TSLA/CSLA de la Table 1, PSLA remis à l'échelle de la période (voir « Seuil PSLA dans S3 ») ; ablation P2 / P1+P2 / P3+P2 + sensibilité au taux d'écriture |
 
 ## Lancer
 
@@ -53,6 +53,16 @@ installez-le depuis les sources (tag `7.0.1` de https://github.com/Cloudslab/clo
   suit la Table 1, pas les coûts déclarés aux datacenters CloudSim.
 
 ## Validité et garanties
+
+### Seuil PSLA dans S3
+
+La popularité (Eq. 1) est un nombre d'accès **par période** : le PSLA dépend donc de la durée de la période.
+Dans S1/S2, les 1000 requêtes tiennent dans une seule période d'une heure et chacune lit les mêmes relations :
+`psla = 200` est franchi après 200 requêtes, c'est-à-dire quand une relation est lue par **20 %** des requêtes
+de la période. Dans S3, une période compte 50 requêtes ; 200 accès par période y sont inatteignables.
+On conserve la même proportion : `s3.psla` = 20 % × 50 = **10 accès par période**. Une conversion par la durée
+(200 accès/h ramenés à 50 s) dépendrait du débit simulé `s3.qps`, arbitraire, et n'est pas retenue.
+TSLA et CSLA ne dépendent pas de la période et restent ceux de la Table 1.
 
 ### Validation de la prédiction (P1) — `exp/ForecastValidation`
 
@@ -123,3 +133,11 @@ varier le nombre de sites (fournisseurs synthétiques), de modèles de requête 
 
 Sorties : `results/v2_summary_all_seeds.csv`, `results/v2_scalability.csv` ; figures `v2_scalability.png`,
 `v2_dynamic_weights.png`, `v2_saturation.png`, `v2_antithrashing.png`, `v2_summary.png`.
+
+## S2 : figures complémentaires
+
+- `figures/s2_multiseed.png` : moyenne ± écart-type sur 10 graines (temps de réponse, coût lié au placement,
+  réplicas créés, lectures au-dessus de TSLA), requêtes simples et complexes.
+- `figures/s2_sensitivity.png` et `results/s2_sensitivity_psla.csv` : sensibilité au seuil PSLA (50, 100, 200, 400).
+- En S2, aucun réplica n'est supprimé (une seule période : l'algorithme 3 n'agit pas) et la synchronisation
+  coûte 0 $ (aucune écriture).

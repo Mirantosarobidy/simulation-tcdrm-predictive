@@ -60,6 +60,23 @@ public final class Main {
         Csv.writeRows(res.resolve("s1s2_queries_seed0.csv"), header("scenario", "strategy", "replica"), q0);
         charts.articleFigures(seed0, "s1_", new String[]{"NoRepLc", "TCDRM"});
         charts.articleFigures(seed0, "s2_", new String[]{"NoRepLc", "TCDRM", "TCDRM-Predictive"});
+        charts.s2MultiSeed(s12);
+        // sensibilité de S2 au seuil de popularité PSLA (paramètre clé de l'article)
+        System.out.println("S2 : sensibilité à PSLA (" + sensSeeds + " graines)");
+        List<Map<String, Object>> s2sens = new ArrayList<>();
+        for (int psla : new int[]{50, 100, 200, 400}) {
+            Experiments e2 = new Experiments(c.with(Map.of("psla", String.valueOf(psla))));
+            for (String kind : new String[]{"simple", "complex"}) {
+                for (int seed = 0; seed < sensSeeds; seed++) {
+                    for (Result r : e2.runArticle(kind, seed)) {
+                        r.summary.put("psla", psla);
+                        s2sens.add(r.summary);
+                    }
+                }
+            }
+        }
+        Csv.writeMaps(res.resolve("s2_sensitivity_psla.csv"), s2sens);
+        charts.s2Sensitivity(s2sens);
         printTable(s12, new String[]{"rt_mean", "cost_bw", "cost_total", "gb_provider", "gb_region", "replicas_final"},
                 "scenario");
 

@@ -57,7 +57,9 @@ public final class SimulationRunner {
         try {
             boolean trace = traceThisRun(c, label);
             if (trace) {
-                Log.setOutput(new java.io.FileOutputStream(c.str("cloudsim.log.file")));
+                java.nio.file.Path traceFile = java.nio.file.Path.of(c.str("cloudsim.log.file"));
+                if (traceFile.getParent() != null) java.nio.file.Files.createDirectories(traceFile.getParent());
+                Log.setOutput(new java.io.FileOutputStream(traceFile.toFile()));
                 Log.enable();
             } else {
                 Log.disable();

@@ -876,4 +876,67 @@ public final class Charts {
         compose("v2_scalability", "Scalabilité de la décision de placement (moyenne sur 5 graines)", 2,
                 imgs.toArray(new BufferedImage[0]));
     }
+
+    // S2 : moyennes sur les graines et sensibilité à PSLA
+    private static List<Map<String, Object>> ofKind(List<Map<String, Object>> sums, String kind) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map<String, Object> m : sums) if (kind.equals(m.get("scenario"))) out.add(m);
+        return out;
+    }
+
+    /** S2 : moyenne ± écart-type sur les graines, une colonne par type de requête. */
+    public void s2MultiSeed(List<Map<String, Object>> s12) throws IOException {
+        List<String> order = List.of("NoRepLc", "TCDRM", "TCDRM-Predictive", "Predictive sans contraintes", "Replicate-All");
+        String[][] metrics = {{"rt_mean", "Temps de réponse moyen (ms)", "0.0"},
+                {"cost_placement", "Coût lié au placement ($)", "0.00"},
+                {"replicas_created", "Réplicas créés", "0"},
+                {"sla_T_violation_pct", "Lectures au-dessus de TSLA (%)", "0.0"}};
+        int n = (int) s12.stream().map(m -> m.get("seed")).distinct().count();
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String[] m : metrics) {
+            for (String kind : new String[]{"simple", "complex"}) {
+                imgs.add(statBars(ofKind(s12, kind), order, m[0], KIND_FR.get(kind) + " — " + m[1], m[2], 620, 360));
+            }
+        }
+        compose("s2_multiseed", "S2 — moyenne ± écart-type sur " + n + " graines", 2, imgs.toArray(new BufferedImage[0]));
+    }
+
+    /** S2 : effet du seuil PSLA sur le temps de réponse, le coût total et le nombre de réplicas. */
+    public void s2Sensitivity(List<Map<String, Object>> sens) throws IOException {
+        String[] lines = {"NoRepLc", "TCDRM", "TCDRM-Predictive", "Replicate-All"};
+        String[][] metrics = {{"rt_mean", "Temps de réponse moyen", "ms"}, {"cost_total", "Coût total", "$"},
+                {"replicas_created", "Réplicas créés", "réplicas"}};
+        int[] pslas = {50, 100, 200, 400};
+        int n = (int) sens.stream().map(m -> m.get("seed")).distinct().count();
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String kind : new String[]{"simple", "complex"}) {
+            for (String[] m : metrics) {
+                XYChart c = xy(520, 380, KIND_FR.get(kind) + " — " + m[1], "PSLA (accès)", m[2]);
+                c.getStyler().setMarkerSize(8);
+                c.getStyler().setYAxisMin(0.0);
+                c.getStyler().setLegendVisible(kind.equals("simple") && m[0].equals("rt_mean"));
+                c.getStyler().setLegendPosition(Styler.LegendPosition.InsideNW);
+                for (String st : lines) {
+                    double[] x = new double[pslas.length], y = new double[pslas.length];
+                    for (int i = 0; i < pslas.length; i++) {
+                        x[i] = pslas[i];
+                        double t = 0;
+                        int k = 0;
+                        for (Map<String, Object> s : sens) {
+                            if (kind.equals(s.get("scenario")) && st.equals(s.get("strategy"))
+                                    && ((Number) s.get("psla")).intValue() == pslas[i]) {
+                                t += ((Number) s.get(m[0])).doubleValue();
+                                k++;
+                            }
+                        }
+                        y[i] = t / Math.max(1, k);
+                    }
+                    mark(line(c, st, x, y, 2.2f));
+                }
+                imgs.add(img(c));
+            }
+        }
+        compose("s2_sensitivity", "S2 — sensibilité au seuil de popularité PSLA (moyenne sur " + n + " graines)", 3,
+                imgs.toArray(new BufferedImage[0]));
+    }
 }
