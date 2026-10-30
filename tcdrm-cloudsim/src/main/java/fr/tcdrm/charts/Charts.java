@@ -159,7 +159,17 @@ public final class Charts {
         g.drawString(title, 16, 30);
         for (int i = 0; i < panels.length; i++) g.drawImage(panels[i], (i % cols) * pw, top + (i / cols) * ph, null);
         g.dispose();
-        ImageIO.write(out, "png", new File(dir.toFile(), file + ".png"));
+        File sub = new File(dir.toFile(), folderOf(file));
+        sub.mkdirs();
+        ImageIO.write(out, "png", new File(sub, file + ".png"));
+    }
+
+    /** Sous-dossier de figures/ : un par scénario ; P1 et v2 avec la charge qui les alimente, sensibilités S3 + S5 à part. */
+    static String folderOf(String file) {
+        if (file.matches("s[1-5]_.*")) return file.substring(0, 2);
+        if (file.equals("p1_validation_s5")) return "s5";
+        if (file.startsWith("p1_") || file.startsWith("v2_")) return "s4";
+        return "transverse";
     }
 
     static double[] seq(int n, double start) {

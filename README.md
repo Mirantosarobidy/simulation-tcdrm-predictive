@@ -41,6 +41,13 @@ installez-le depuis les sources (tag `7.0.1` de https://github.com/Cloudslab/clo
 | `exp/Experiments`, `Main` | Scénarios, graines, sensibilités, export CSV |
 | `charts/Charts` | Figures (XChart pour les courbes, JFreeChart pour les barres) |
 
+## Figures
+
+`figures/` est rangé par scénario (`Charts.folderOf`) : `s1/` à `s5/` pour les figures `sN_*.png` ;
+`s4/` contient aussi `p1_validation.png` (P1 entraîné sur les charges S4) et les figures `v2_*.png` (variantes
+évaluées sur S4) ; `s5/` contient `p1_validation_s5.png` ; `transverse/` contient les sensibilités
+`sensitivity_*.png`, qui portent à la fois sur S3 et S5.
+
 ## Ce que CloudSim simule
 
 - 9 datacenters (Google, AWS, Azure × US, UE, AS), 10 hôtes de 8 PE chacun.
@@ -128,10 +135,10 @@ Sorties : `results/v2_summary_all_seeds.csv`, `results/v2_scalability.csv` ; fig
 
 ## S2 : figures complémentaires
 
-- `figures/s2_multiseed.png` : moyenne ± écart-type sur 10 graines (temps de réponse, coût lié au placement,
+- `figures/s2/s2_multiseed.png` : moyenne ± écart-type sur 10 graines (temps de réponse, coût lié au placement,
   réplicas créés, lectures au-dessus de TSLA), requêtes simples et complexes.
-- `figures/s2_sensitivity.png` et `results/s2_sensitivity_psla.csv` : sensibilité au seuil PSLA (50, 100, 200, 400).
-- `figures/s2_replica_sites.png` et `results/s2_replica_sites.csv` : réplicas créés par site et par stratégie.
+- `figures/s2/s2_sensitivity.png` et `results/s2_sensitivity_psla.csv` : sensibilité au seuil PSLA (50, 100, 200, 400).
+- `figures/s2/s2_replica_sites.png` et `results/s2_replica_sites.csv` : réplicas créés par site et par stratégie.
 - En S2, aucun réplica n'est supprimé (une seule période : l'algorithme 3 n'agit pas) et la synchronisation
   coûte 0 $ (aucune écriture).
 
