@@ -97,28 +97,28 @@ public final class Experiments {
         return out;
     }
 
-    // S3 : scénario dynamique
-    /** Variation des prix (période s3.priceChangePeriod) : Azure double sa sortie inter-région, Google la divise
-     *  par deux, AWS baisse sa sortie inter-fournisseur. */
+    // S4 : requêtes aléatoires
+    /** Variation des prix (période s4.priceChangePeriod, si elle est définie) : Azure double sa sortie inter-région, Google la divise
+     *  par deux, AWS baisse sa sortie inter-fournisseur de 20 % (facteurs appliqués aux prix en vigueur). */
     public static void priceChange(MultiCloud cl) {
-        cl.setInterRegion("Azure", 0.016);
-        cl.setInterRegion("Google", 0.004);
-        cl.setInterProvider("AWS", 0.008);
+        cl.scaleInterRegion("Azure", 2.0);       // Table 1 : 0,008 → 0,016 $/Go
+        cl.scaleInterRegion("Google", 0.5);      // Table 1 : 0,008 → 0,004 $/Go
+        cl.scaleInterProvider("AWS", 0.8);       // Table 1 : 0,01 → 0,008 $/Go
     }
 
     /** Budget par cycle = facteur × coût moyen par cycle de NoRepLc (les SLA restent ceux de la Table 1). */
     public double calibrateBudget(Workload w) {
         Options o = new Options();
-        o.psla = c.dbl("s3.psla");
-        o.delPsla = c.dbl("s3.delPsla");
+        o.psla = c.dbl("s4.psla");
+        o.delPsla = c.dbl("s4.delPsla");
         o.sla = c.sla;
-        o.priceHour = c.integer("s3.priceChangePeriod");
+        o.priceHour = c.has("s4.priceChangePeriod") ? c.integer("s4.priceChangePeriod") : -1;
         o.priceChange = Experiments::priceChange;
         Result r = SimulationRunner.run(c, w, null, "calibration", o);
         double total = 0;
         for (Object[] row : r.rows) total += (Double) row[5] + (Double) row[6] + (Double) row[7];
         double cycles = w.nPeriods / (double) w.cycle;
-        return c.dbl("s3.budgetFactor") * total / cycles;
+        return c.dbl("s4.budgetFactor") * total / cycles;
     }
 
     static double median(List<Double> v) {
@@ -171,19 +171,22 @@ public final class Experiments {
                 pv("TCDRM-Predictive v2", lstm, v2(true, false, false, true)));
     }
 
-    /** Fournisseurs synthétiques P4, P5, … : prix de Google ou d'AWS majorés de 2 % par fournisseur. */
+    /** Fournisseurs synthétiques P4, P5, … : tous les prix de Google ou d'AWS (Table 1 ou prix publics) majorés de 2 % par fournisseur. */
     public static Map<String, String> extraProviders(SimConfig c, int nProviders) {
         Map<String, String> o = new LinkedHashMap<>();
         List<String> provs = new ArrayList<>(c.providers);
+        String[] priced = {"cpu.", "io.", "bw.interRegion.", "bw.interProvider.", "storage.price."};
         for (int k = provs.size() + 1; k <= nProviders; k++) {
             String p = "P" + k, base = k % 2 == 0 ? "Google" : "AWS";
             double f = 1 + 0.02 * k;
-            for (String r : c.regions) {
-                o.put("cpu." + p + "." + r, String.valueOf(c.dbl("cpu." + base + "." + r) * f));
-                o.put("io." + p + "." + r, String.valueOf(c.dbl("io." + base + "." + r) * f));
+            for (String key : c.keys()) {
+                String[] parts = key.split("\\.");
+                boolean isPrice = false;
+                for (String pr : priced) isPrice |= key.startsWith(pr);
+                if (!isPrice || !Arrays.asList(parts).contains(base)) continue;
+                for (int i = 0; i < parts.length; i++) if (parts[i].equals(base)) parts[i] = p;
+                o.put(String.join(".", parts), String.valueOf(c.dbl(key) * f));
             }
-            o.put("bw.interRegion." + p, String.valueOf(c.dbl("bw.interRegion." + base) * f));
-            o.put("bw.interProvider." + p, String.valueOf(c.dbl("bw.interProvider." + base) * f));
             provs.add(p);
         }
         o.put("providers", String.join(",", provs));
@@ -194,21 +197,23 @@ public final class Experiments {
         public final List<Result> results = new ArrayList<>();
         public Map<String, double[]> sla;
         public double budget;
+        public Workload workload;
     }
 
     public DynamicRun runDynamic(int seed, S3Params sp, List<Variant> variants) {
         Workload w = Workloads.dynamic(c, seed, sp);
         DynamicRun dr = new DynamicRun();
+        dr.workload = w;
         dr.sla = c.sla;
         dr.budget = calibrateBudget(w);
         for (Variant v : variants) {
             Options o = new Options();
-            o.psla = c.dbl("s3.psla");
-            o.delPsla = c.dbl("s3.delPsla");
-            o.deltaT = c.integer("s3.deltaT");
+            o.psla = c.dbl("s4.psla");
+            o.delPsla = c.dbl("s4.delPsla");
+            o.deltaT = c.integer("s4.deltaT");
             o.budgetPerDay = dr.budget;
             o.sla = dr.sla;
-            o.priceHour = c.integer("s3.priceChangePeriod");
+            o.priceHour = c.has("s4.priceChangePeriod") ? c.integer("s4.priceChangePeriod") : -1;
             o.priceChange = Experiments::priceChange;
             PlacementStrategy p = v.make().get();
             long t0 = System.nanoTime();

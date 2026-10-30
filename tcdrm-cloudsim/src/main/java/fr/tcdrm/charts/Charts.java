@@ -74,6 +74,13 @@ public final class Charts {
     private String[] shown = S12;
 
     private final Path dir;
+    /** Préfixe des fichiers et nom des figures du scénario à requêtes aléatoires (S4 ou S5). */
+    private String dyn = "s4", dynName = "S4";
+    private String p1File = "p1_validation";
+
+    public void setDynamic(String file, String name) { dyn = file; dynName = name; }
+
+    public void setP1File(String file) { p1File = file; }
     /** Échelle de temps de S3 : nombre de périodes, périodes par cycle, requêtes par période. */
     private int nPeriods = 60, cycle = 15, periodQueries = 50;
 
@@ -374,7 +381,7 @@ public final class Charts {
         r2.setDefaultItemLabelsVisible(true);
         r2.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 11));
         r2.setDefaultItemLabelPaint(INK2);
-        compose("p1_validation", "P1 — validation de la prédiction (entraînement, validation et test sur des charges distinctes)",
+        compose(p1File, "P1 — validation de la prédiction (entraînement, validation et test sur des charges distinctes)",
                 2, img(a, 680, 440), img(b, 680, 440));
     }
 
@@ -412,10 +419,10 @@ public final class Charts {
             ch.getStyler().setXAxisMin(0.0);
             ch.getStyler().setXAxisMax((double) nPeriods);
             ch.getStyler().setXAxisMaxLabelCount(15);
-            ch.addAnnotation(new AnnotationLine(priceHour, true, false));
+            if (priceHour > 0) ch.addAnnotation(new AnnotationLine(priceHour, true, false));
         }
-        a.addAnnotation(new AnnotationText("variation des prix", priceHour + 3, 105, false));
-        compose("s3_timeseries", "S3 — évolution sur " + nPeriods * periodQueries + " requêtes (graine 0)", 1, img(a), img(b), img(c));
+        if (priceHour > 0) a.addAnnotation(new AnnotationText("variation des prix", priceHour + 3, 105, false));
+        compose(dyn + "_timeseries", dynName + " — évolution sur " + nPeriods * periodQueries + " requêtes (graine 0)", 1, img(a), img(b), img(c));
     }
 
     // S3 : figures de l'article (graine 0)
@@ -425,7 +432,10 @@ public final class Charts {
         int n = nPeriods * periodQueries;
         List<BufferedImage> rt = new ArrayList<>();
         for (String kind : new String[]{"simple", "complex"}) {
-            XYChart c = xy(640, 430, KIND_FR.get(kind), "Numéro de requête", "Temps de réponse (ms)");
+            boolean any = false;
+            for (Object[] row : rs.get(0).rows) any |= kind.equals(row[2]);
+            if (!any) continue;                     // S3 : requêtes Q1, Q2, Q3 de 3 relations (type simple)
+            XYChart c = xy(1300, 430, kind.equals("simple") ? "Lectures (3 relations par requête)" : KIND_FR.get(kind), "Numéro de requête", "Temps de réponse (ms)");
             c.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
             for (String s : st) {
                 Result r = find(rs, s);
@@ -437,7 +447,7 @@ public final class Charts {
             s3Axis(c, n, priceQuery);
             rt.add(img(c));
         }
-        compose("s3_fig3_response_time", "S3 — Temps de réponse des lectures, moyenne glissante sur 20 requêtes du même type", 2,
+        compose(dyn + "_fig3_response_time", dynName + " — Temps de réponse des lectures, moyenne glissante sur 20 requêtes", rt.size(),
                 rt.toArray(new BufferedImage[0]));
         XYChart rep = xy(1300, 430, "", "Numéro de requête", "Réplicas actifs");
         XYChart per = xy(1300, 430, "", "Numéro de requête", "Coût BW ($ / requête)");
@@ -452,9 +462,9 @@ public final class Charts {
             line(cum, s, x, cumsum(col(r, 6)), 2.2f);
         }
         for (XYChart c : new XYChart[]{rep, per, cum}) s3Axis(c, n, priceQuery);
-        compose("s3_fig2_replicas", "S3 — Facteur de réplication (réplicas actifs)", 1, img(rep));
-        compose("s3_fig5_bw_cost_per_query", "S3 — Coût de bande passante par requête, moyenne glissante sur 50 requêtes", 1, img(per));
-        compose("s3_fig6_bw_cumulative", "S3 — Coût cumulé de bande passante", 1, img(cum));
+        compose(dyn + "_fig2_replicas", dynName + " — Facteur de réplication (réplicas actifs)", 1, img(rep));
+        compose(dyn + "_fig5_bw_cost_per_query", dynName + " — Coût de bande passante par requête, moyenne glissante sur 50 requêtes", 1, img(per));
+        compose(dyn + "_fig6_bw_cumulative", dynName + " — Coût cumulé de bande passante", 1, img(cum));
     }
 
     private void s3Axis(XYChart c, int n, int priceQuery) {
@@ -462,13 +472,13 @@ public final class Charts {
         c.getStyler().setXAxisMax((double) n);
         c.getStyler().setXAxisMaxLabelCount(13);
         for (int q = cycle * periodQueries; q < n; q += cycle * periodQueries) c.addAnnotation(new AnnotationLine(q, true, false));
-        c.addAnnotation(new AnnotationLine(priceQuery, true, false));
+        if (priceQuery > 0) c.addAnnotation(new AnnotationLine(priceQuery, true, false));
     }
 
     // S3 : comparaison multi-graines
     public void s3MultiSeed(List<Map<String, Object>> sums, List<String> order) throws IOException {
         String[][] metrics = {{"rt_mean", "Temps de réponse moyen (ms)"}, {"cost_placement", "Coût lié au placement ($)"},
-                {"replicas_created", "Réplicas créés"}, {"thrash", "Réplicas recréés moins d'un cycle après suppression"}};
+                {"replicas_created", "Réplicas créés"}, {"replicas_deleted", "Réplicas supprimés (algorithme 3)"}};
         List<BufferedImage> imgs = new ArrayList<>();
         for (String[] m : metrics) {
             DefaultStatisticalCategoryDataset ds = new DefaultStatisticalCategoryDataset();
@@ -494,7 +504,7 @@ public final class Charts {
             r.setItemMargin(0);
             r.setMaximumBarWidth(0.09);
             r.setDefaultItemLabelGenerator(new StandardCategoryItemLabelGenerator("{2}",
-                    new java.text.DecimalFormat(m[0].equals("rt_mean") || m[0].equals("cost_placement") ? "0.0" : "0")));
+                    new java.text.DecimalFormat("0.0")));
             r.setDefaultItemLabelsVisible(true);
             r.setDefaultItemLabelFont(new Font("SansSerif", Font.PLAIN, 12));
             r.setDefaultItemLabelPaint(INK2);
@@ -505,7 +515,7 @@ public final class Charts {
             r.setDefaultItemLabelPaint(Color.WHITE);
             imgs.add(img(ch, 650, 380));
         }
-        compose("s3_multiseed", "S3 — moyenne ± écart-type sur 10 graines", 2, imgs.toArray(new BufferedImage[0]));
+        compose(dyn + "_multiseed", dynName + " — moyenne ± écart-type sur " + sums.stream().map(m -> m.get("seed")).distinct().count() + " graines", 2, imgs.toArray(new BufferedImage[0]));
     }
 
     // S3 : indicateurs de validation
@@ -603,7 +613,7 @@ public final class Charts {
             line(b, st, t, cum, 2f);
         }
         b.addAnnotation(new AnnotationLine(0, false, false));
-        compose("s3_validation_budget", "Respect du budget (période de budget = cycle de " + cycle * periodQueries + " requêtes)", 2, img(a), img(b));
+        compose(dyn + "_validation_budget", "Respect du budget (période de budget = cycle de " + cycle * periodQueries + " requêtes)", 2, img(a), img(b));
 
         // 2. SLA : latence moyenne, p95, p99
         DefaultCategoryDataset sla = new DefaultCategoryDataset();
@@ -622,7 +632,7 @@ public final class Charts {
         for (String st : order) vt.addValue(meanOf(sums, st, "sla_T_violation_pct"), "violations", st);
         JFreeChart cv = bars("Lectures au-dessus de TSLA (%)", "%", vt, false, "0.0");
         colorByStrategy(cv, order);
-        compose("s3_validation_sla", "Respect du SLA", 2, img(cs, 700, 460), img(cv, 600, 460));
+        compose(dyn + "_validation_sla", "Respect du SLA", 2, img(cs, 700, 460), img(cv, 600, 460));
 
         // 3. Bande passante inter-cloud : volume par origine + coût
         DefaultCategoryDataset vol = new DefaultCategoryDataset();
@@ -644,7 +654,7 @@ public final class Charts {
         cvol.getLegend().setPosition(RectangleEdge.BOTTOM);
         JFreeChart ccost = bars("Coût inter-cloud ($)", "$", cost, false, "0.0");
         colorByStrategy(ccost, order);
-        compose("s3_validation_bandwidth", "Bande passante inter-cloud (moyenne sur 10 graines)", 2,
+        compose(dyn + "_validation_bandwidth", "Bande passante inter-cloud (moyenne sur 10 graines)", 2,
                 img(cvol, 680, 480), img(ccost, 620, 480));
 
         // 4. Facteur de réplication + stabilité
@@ -664,7 +674,7 @@ public final class Charts {
         rr.setMaximumBarWidth(0.05);
         JFreeChart cthr = bars("Taux de thrashing : recréations < 1 cycle / créations (%)", "%", thr, false, "0.0");
         colorByStrategy(cthr, repl);
-        compose("s3_validation_replication", "Facteur de réplication et stabilité des décisions (moyenne sur 10 graines)", 2,
+        compose(dyn + "_validation_replication", "Facteur de réplication et stabilité des décisions (moyenne sur 10 graines)", 2,
                 img(crep, 680, 460), img(cthr, 620, 460));
 
         // 5. Amortissement : distribution du temps de retour + part des réplicas amortis
@@ -697,7 +707,7 @@ public final class Charts {
         }
         JFreeChart cpaid = bars("Réplicas amortis avant leur suppression ou la fin (%)", "%", paid, false, "0");
         colorByStrategy(cpaid, repl);
-        compose("s3_validation_amortization", "Amortissement économique des réplicas (10 graines)", 2,
+        compose(dyn + "_validation_amortization", "Amortissement économique des réplicas (10 graines)", 2,
                 img(cdf), img(cpaid, 620, 460));
     }
 
@@ -725,7 +735,7 @@ public final class Charts {
             mark(line(c, st, x, yc, 2.2f));
         }
         a.addAnnotation(new AnnotationLine(0, false, false));
-        compose("s3_sensitivity", "S3 — sensibilité au taux d'écriture (moyenne sur 5 graines)", 3, img(a), img(b), img(c));
+        compose(dyn + "_sensitivity", dynName + " — sensibilité au taux d'écriture (moyenne sur 5 graines)", 3, img(a), img(b), img(c));
     }
 
     private static void mark(XYSeries s) {
@@ -841,7 +851,6 @@ public final class Charts {
     public void v2Scalability(List<Map<String, Object>> sc) throws IOException {
         String[][] axes = {{"sites", "Nombre de sites (fournisseurs × 3 régions)", "decision_us_mean", "Temps d'une décision (µs)"},
                 {"sites", "Nombre de sites (fournisseurs × 3 régions)", "cand_per_decision", "Candidats évalués par décision P2"},
-                {"templates", "Nombre de modèles de requête", "decision_us_mean", "Temps d'une décision (µs)"},
                 {"queries", "Nombre de requêtes simulées", "wall_s", "Durée d'une simulation (s)"}};
         String[] strat = {"TCDRM", "TCDRM-Predictive"};
         List<BufferedImage> imgs = new ArrayList<>();
@@ -873,7 +882,7 @@ public final class Charts {
             }
             imgs.add(img(c));
         }
-        compose("v2_scalability", "Scalabilité de la décision de placement (moyenne sur 5 graines)", 2,
+        compose("v2_scalability", "Scalabilité de la décision de placement (moyenne sur 5 graines)", 3,
                 imgs.toArray(new BufferedImage[0]));
     }
 
@@ -885,7 +894,9 @@ public final class Charts {
     }
 
     /** S2 : moyenne ± écart-type sur les graines, une colonne par type de requête. */
-    public void s2MultiSeed(List<Map<String, Object>> s12) throws IOException {
+    public void s2MultiSeed(List<Map<String, Object>> s12) throws IOException { articleMultiSeed(s12, "s2", "S2"); }
+
+    public void articleMultiSeed(List<Map<String, Object>> s12, String file, String name) throws IOException {
         List<String> order = List.of("NoRepLc", "TCDRM", "TCDRM-Predictive", "Predictive sans contraintes", "Replicate-All");
         String[][] metrics = {{"rt_mean", "Temps de réponse moyen (ms)", "0.0"},
                 {"cost_placement", "Coût lié au placement ($)", "0.00"},
@@ -898,7 +909,7 @@ public final class Charts {
                 imgs.add(statBars(ofKind(s12, kind), order, m[0], KIND_FR.get(kind) + " — " + m[1], m[2], 620, 360));
             }
         }
-        compose("s2_multiseed", "S2 — moyenne ± écart-type sur " + n + " graines", 2, imgs.toArray(new BufferedImage[0]));
+        compose(file + "_multiseed", name + " — moyenne ± écart-type sur " + n + " graines", 2, imgs.toArray(new BufferedImage[0]));
     }
 
     /** S2 : effet du seuil PSLA sur le temps de réponse, le coût total et le nombre de réplicas. */
@@ -938,5 +949,258 @@ public final class Charts {
         }
         compose("s2_sensitivity", "S2 — sensibilité au seuil de popularité PSLA (moyenne sur " + n + " graines)", 3,
                 imgs.toArray(new BufferedImage[0]));
+    }
+
+    /** S2 : nombre moyen de réplicas créés par site, pour chaque stratégie (requêtes simples et complexes). */
+    public void s2ReplicaSites(List<Map<String, Object>> rows, List<String> siteOrder) throws IOException {
+        articleReplicaSites(rows, siteOrder, "s2", "S2");
+    }
+
+    public void articleReplicaSites(List<Map<String, Object>> rows, List<String> siteOrder, String file, String name) throws IOException {
+        String[] strat = {"TCDRM", "TCDRM-Predictive", "Replicate-All"};
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String kind : new String[]{"simple", "complex"}) {
+            DefaultCategoryDataset ds = new DefaultCategoryDataset();
+            for (String st : strat) {
+                for (String site : siteOrder) {
+                    double v = 0;
+                    for (Map<String, Object> r : rows) {
+                        if (kind.equals(r.get("scenario")) && st.equals(r.get("strategy")) && site.equals(r.get("site"))) {
+                            v = ((Number) r.get("replicas_mean_per_seed")).doubleValue();
+                        }
+                    }
+                    ds.addValue(v, st, site);
+                }
+            }
+            JFreeChart ch = bars(KIND_FR.get(kind) + " — réplicas créés par site (moyenne par graine)", "Réplicas", ds, false, "0.#");
+            BarRenderer br = (BarRenderer) ch.getCategoryPlot().getRenderer();
+            for (int k = 0; k < strat.length; k++) br.setSeriesPaint(k, COL.get(strat[k]));
+            br.setMaximumBarWidth(0.06);
+            imgs.add(img(ch, 1240, 400));
+        }
+        compose(file + "_replica_sites", name + " — répartition des réplicas par site (NoRepLc : aucun réplica)", 1,
+                imgs.toArray(new BufferedImage[0]));
+    }
+
+    // S3 : réalisme des prix (scénario de l'article)
+    static final String[] S3_CMP = {"NoRepLc", "TCDRM", "Replicate-All", "TCDRM-Predictive"};
+    public static final String[] PRICE_CFG = {"Table 1 (S2)", "Prix publics, CSLA Table 1", "Prix publics, CSLA × 7 (S3)"};
+
+    /** Scénario de l'article : Table 1 (S2) contre prix publics, requêtes simples et complexes. */
+    public void s3PriceComparison(List<Map<String, Object>> cmp) throws IOException {
+        String[][] metrics = {{"rt_mean", "Temps de réponse moyen (ms)", "0"},
+                {"cost_pct_of_norep", "Coût lié au placement (% de NoRepLc)", "0"},
+                {"replicas_created", "Réplicas créés", "0.#"}};
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String[] m : metrics) {
+            for (String kind : new String[]{"simple", "complex"}) {
+                DefaultCategoryDataset ds = new DefaultCategoryDataset();
+                for (String st : S3_CMP) {
+                    for (String pc : PRICE_CFG) {
+                        double t = 0;
+                        int n = 0;
+                        for (Map<String, Object> r : cmp) {
+                            if (pc.equals(r.get("prices")) && kind.equals(r.get("scenario")) && st.equals(r.get("strategy"))
+                                    && r.get(m[0]) instanceof Number v) {
+                                t += v.doubleValue();
+                                n++;
+                            }
+                        }
+                        ds.addValue(n == 0 ? 0 : t / n, st, pc);
+                    }
+                }
+                JFreeChart ch = bars(KIND_FR.get(kind) + " — " + m[1], null, ds, false, m[2]);
+                ch.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(org.jfree.chart.axis.CategoryLabelPositions.STANDARD);
+                ch.getCategoryPlot().getDomainAxis().setMaximumCategoryLabelLines(2);
+                BarRenderer br = (BarRenderer) ch.getCategoryPlot().getRenderer();
+                for (int k = 0; k < S3_CMP.length; k++) br.setSeriesPaint(k, COL.get(S3_CMP[k]));
+                br.setMaximumBarWidth(0.07);
+                imgs.add(img(ch, 680, 400));
+            }
+        }
+        int n = (int) cmp.stream().map(m -> m.get("seed")).distinct().count();
+        compose("s3_price_comparison", "Scénario de l'article : prix de la Table 1 (S2) contre prix publics (S3), moyenne sur "
+                + n + " graines", 2, imgs.toArray(new BufferedImage[0]));
+    }
+
+    // S4 : requêtes aléatoires
+    /** Réplicas créés par site (une seule sorte de requête). */
+    public void s4ReplicaSites(List<Map<String, Object>> rows, List<String> siteOrder) throws IOException {
+        String[] strat = {"TCDRM", "Replicate-All", "TCDRM-Predictive"};
+        DefaultCategoryDataset ds = new DefaultCategoryDataset();
+        for (String st : strat) {
+            for (String site : siteOrder) {
+                double v = 0;
+                for (Map<String, Object> r : rows) {
+                    if (st.equals(r.get("strategy")) && site.equals(r.get("site"))) v = ((Number) r.get("replicas_mean_per_seed")).doubleValue();
+                }
+                ds.addValue(v, st, site);
+            }
+        }
+        JFreeChart ch = bars("Réplicas créés par site (moyenne par graine)", "Réplicas", ds, false, "0.#");
+        BarRenderer br = (BarRenderer) ch.getCategoryPlot().getRenderer();
+        for (int k = 0; k < strat.length; k++) br.setSeriesPaint(k, COL.get(strat[k]));
+        br.setMaximumBarWidth(0.06);
+        compose(dyn + "_replica_sites", dynName + " — où vont les réplicas ? (NoRepLc : aucun réplica)", 1, img(ch, 1240, 420));
+    }
+
+    /** Réplicas par rôle de relation et cycle de vie de la relation partagée et d'une relation rare. */
+    public void s4Relations(List<Map<String, Object>> relRows, List<Result> seedRes, int seed,
+                            fr.tcdrm.config.SimConfig c, fr.tcdrm.workload.Workloads.Workload w0) throws IOException {
+        String[] rels = fr.tcdrm.workload.Workloads.ROLES;
+        String[] strat = {"TCDRM", "Replicate-All", "TCDRM-Predictive"};
+        List<BufferedImage> top = new ArrayList<>();
+        for (String[] m : new String[][]{{"created_mean", "Réplicas créés selon le rôle de la relation"},
+                {"deleted_mean", "Réplicas supprimés selon le rôle de la relation"}}) {
+            DefaultCategoryDataset ds = new DefaultCategoryDataset();
+            for (String st : strat) {
+                for (String f : rels) {
+                    double v = 0;
+                    for (Map<String, Object> r : relRows) {
+                        if (st.equals(r.get("strategy")) && f.equals(r.get("role"))) v = ((Number) r.get(m[0])).doubleValue();
+                    }
+                    ds.addValue(v, st, f);
+                }
+            }
+            JFreeChart ch = bars(m[1] + " (moyenne par graine)", "Réplicas", ds, false, "0.#");
+            ch.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(org.jfree.chart.axis.CategoryLabelPositions.STANDARD);
+            BarRenderer br = (BarRenderer) ch.getCategoryPlot().getRenderer();
+            for (int k = 0; k < strat.length; k++) br.setSeriesPaint(k, COL.get(strat[k]));
+            br.setMaximumBarWidth(0.07);
+            top.add(img(ch, 650, 400));
+        }
+        compose(dyn + "_relations", dynName + " — réplicas selon le rôle de la relation (partagée par toutes les requêtes → propre à la requête rare)", 2,
+                top.toArray(new BufferedImage[0]));
+        int f1 = -1, f20 = -1;
+        for (var e : w0.roles.entrySet()) {
+            if (f1 < 0 && e.getValue().equals("partagée")) f1 = e.getKey();
+        }
+        // relation rare : celle qui a reçu un réplica, sinon la première
+        for (Result r : seedRes) for (Map<String, Object> e : r.mgr.events) {
+            if (f20 < 0 && "rare".equals(w0.roles.get((Integer) e.get("rel")))) f20 = (Integer) e.get("rel");
+        }
+        if (f20 < 0) for (var e : w0.roles.entrySet()) if (f20 < 0 && e.getValue().equals("rare")) f20 = e.getKey();
+        String l1 = fr.tcdrm.workload.Workloads.fLabel(c, f1) + " (partagée)", l20 = fr.tcdrm.workload.Workloads.fLabel(c, f20) + " (rare)";
+        XYChart ch = xy(1300, 380, "", "Période (" + periodQueries + " requêtes)", "Réplicas actifs");
+        ch.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
+        ch.getStyler().setXAxisMin(0.0);
+        ch.getStyler().setXAxisMax((double) nPeriods);
+        ch.getStyler().setYAxisMin(0.0);
+        ch.getStyler().setYAxisMax(4.5);
+        for (String st : new String[]{"TCDRM", "TCDRM-Predictive"}) {
+            Result r = find(seedRes, st);
+            for (int rel : new int[]{f1, f20}) {
+                List<double[]> ev = new ArrayList<>();
+                for (Map<String, Object> e : r.mgr.events) {
+                    if (!e.get("rel").equals(rel)) continue;
+                    ev.add(new double[]{(Double) e.get("t"), "create".equals(e.get("type")) ? 1 : -1});
+                }
+                ev.sort((a, b) -> Double.compare(a[0], b[0]));
+                double[] x = new double[2 * ev.size() + 2], y = new double[2 * ev.size() + 2];
+                int k = 0;
+                double cur = 0;
+                x[k] = 0; y[k++] = 0;
+                for (double[] e : ev) {
+                    x[k] = e[0]; y[k++] = cur;
+                    cur += e[1];
+                    x[k] = e[0] + 1e-6; y[k++] = cur;
+                }
+                x[k] = nPeriods; y[k] = cur;
+                XYSeries sr = ch.addSeries(st + " — " + (rel == f1 ? l1 : l20), x, y);
+                sr.setLineColor(COL.get(st));
+                sr.setMarker(SeriesMarkers.NONE);
+                sr.setLineStyle(rel == f1 ? new BasicStroke(2.4f) : new BasicStroke(2.4f, BasicStroke.CAP_BUTT,
+                        BasicStroke.JOIN_MITER, 10f, new float[]{7f, 5f}, 0f));
+            }
+        }
+        ch.addAnnotation(new AnnotationLine(w0.burstStart, true, false));
+        ch.addAnnotation(new AnnotationLine(w0.burstEnd, true, false));
+        ch.addAnnotation(new AnnotationText("rafale de la requête rare", (w0.burstStart + w0.burstEnd) / 2.0, 4.2, false));
+        compose(dyn + "_lifecycle", dynName + " — réplicas actifs de la relation partagée (trait plein) et d'une relation rare (tirets), graine " + seed, 1,
+                img(ch));
+    }
+
+    // S5 : charge non stationnaire et variation des prix
+    /** Part de chaque modèle de requête par période (graine montrée), avec la variation des prix. */
+    public void s5Workload(fr.tcdrm.workload.Workloads.Workload w, fr.tcdrm.config.SimConfig c, int priceHour, int seed) throws IOException {
+        Color[] pal = {new Color(0x2a78d6), new Color(0xeb6834), new Color(0x1baf7a), new Color(0x6250d6), new Color(0x8a8984)};
+        int K = w.templates.length, T = w.nPeriods;
+        double[][] cnt = new double[K][T];
+        double[] tot = new double[T];
+        for (fr.tcdrm.workload.Query q : w.queries) {
+            int p = (int) q.tHours;
+            if (p >= T || q.template < 0) continue;
+            cnt[q.template][p]++;
+            tot[p]++;
+        }
+        XYChart ch = xy(1300, 420, "", "Période (" + periodQueries + " requêtes)", "Part des requêtes (%)");
+        ch.getStyler().setLegendPosition(Styler.LegendPosition.OutsideE);
+        ch.getStyler().setXAxisMin(0.0);
+        ch.getStyler().setXAxisMax((double) T);
+        ch.getStyler().setYAxisMin(0.0);
+        for (int j = 0; j < K; j++) {
+            double[] y = new double[T];
+            for (int p = 0; p < T; p++) y[p] = tot[p] > 0 ? 100 * cnt[j][p] / tot[p] : 0;
+            StringBuilder rel = new StringBuilder();
+            for (int r : w.templates[j]) rel.append(rel.length() > 0 ? " " : "").append(fr.tcdrm.workload.Workloads.fLabel(c, r));
+            XYSeries sr = ch.addSeries("Q" + (j + 1) + (j == w.rareTemplate ? " (rare)" : "") + " = {" + rel + "}", seq(T, 0.5), y);
+            sr.setLineColor(pal[j % pal.length]);
+            sr.setMarker(SeriesMarkers.NONE);
+            sr.setLineStyle(new BasicStroke(2.2f));
+        }
+        if (priceHour > 0) {
+            ch.addAnnotation(new AnnotationLine(priceHour, true, false));
+            ch.addAnnotation(new AnnotationText("variation des prix", priceHour + 2.5, 5, false));
+        }
+        compose("s5_workload", "S5 — part de chaque modèle de requête par période (graine " + seed + ")", 1, img(ch));
+    }
+
+    /** S5 : variantes v2 (anti-thrashing, poids dynamiques) sur la charge non stationnaire. */
+    public void s5V2(List<Map<String, Object>> sums) throws IOException {
+        int n = (int) sums.stream().map(m -> m.get("seed")).distinct().count();
+        panels("s5_v2", "S5 — variantes v2 de TCDRM-Predictive (moyenne ± écart-type sur " + n + " graines)", sums,
+                List.of("TCDRM", "TCDRM-Predictive", "P-poids dynamiques", "P-anti-thrashing", "TCDRM-Predictive v2"),
+                new String[][]{
+                        {"rt_mean", "Temps de réponse moyen (ms)", "0.0"},
+                        {"cost_placement", "Coût lié au placement ($)", "0.0"},
+                        {"replicas_deleted", "Réplicas supprimés", "0.0"},
+                        {"thrash", "Réplicas recréés moins d'un cycle après suppression", "0.0"}}, 2);
+    }
+
+    /** Sensibilité aux choix de modélisation (facteur du CSLA, échelle des latences) : S3 simple, S3 complexe, S5. */
+    public void modelSensitivity(List<Map<String, Object>> rows, String sweep, String file, String title, String xl,
+                                 double[] xs) throws IOException {
+        String[] lines = {"NoRepLc", "TCDRM", "Replicate-All", "TCDRM-Predictive"};
+        String[][] cols = {{"S3", "simple", "S3, requêtes simples"}, {"S3", "complex", "S3, requêtes complexes"}, {"S5", "simple", "S5"}};
+        String[][] metrics = {{"rt_mean", "Temps de réponse moyen (ms)"}, {"cost_pct_of_norep", "Coût lié au placement (% de NoRepLc)"}};
+        List<BufferedImage> imgs = new ArrayList<>();
+        for (String[] m : metrics) {
+            for (String[] col : cols) {
+                XYChart c = xy(520, 380, col[2] + " — " + m[1], xl, null);
+                c.getStyler().setMarkerSize(8);
+                c.getStyler().setYAxisMin(0.0);
+                c.getStyler().setLegendVisible(m[0].equals("rt_mean") && col[0].equals("S5"));
+                c.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
+                c.getStyler().setXAxisDecimalPattern("0.#");
+                for (String st : lines) {
+                    double[] y = new double[xs.length];
+                    boolean any = false;
+                    for (int i = 0; i < xs.length; i++) {
+                        double t = 0;
+                        int k = 0;
+                        for (Map<String, Object> r : rows) {
+                            if (!sweep.equals(r.get("sweep")) || !col[0].equals(r.get("scen")) || !col[1].equals(r.get("scenario"))
+                                    || !st.equals(r.get("strategy")) || Math.abs(((Number) r.get("factor")).doubleValue() - xs[i]) > 1e-9) continue;
+                            if (r.get(m[0]) instanceof Number v) { t += v.doubleValue(); k++; }
+                        }
+                        y[i] = k > 0 ? t / k : Double.NaN;
+                        any |= k > 0;
+                    }
+                    if (any) mark(line(c, st, xs, y, 2.2f));
+                }
+                imgs.add(img(c));
+            }
+        }
+        compose(file, title, 3, imgs.toArray(new BufferedImage[0]));
     }
 }

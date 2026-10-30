@@ -113,6 +113,8 @@ public final class ReplicaManager {
         wcounts = new float[n][nPeriods + 1];
     }
 
+    public double psla() { return psla; }
+
     // état
     /** Copies existantes ou en cours de création (évite les doublons de placement). */
     public Set<Integer> copySet(int d) {
@@ -359,8 +361,9 @@ public final class ReplicaManager {
     public void endPeriod(int p, int nextQid) {
         double st = 0;
         for (int d = 0; d < replicas.size(); d++) {
-            for (Replica m : replicas.get(d).values()) {
-                double c = cloud.storageCost(cat.size[d], periodHours());
+            for (Map.Entry<Integer, Replica> en : replicas.get(d).entrySet()) {
+                Replica m = en.getValue();
+                double c = cloud.storageCost(en.getKey(), cat.size[d], periodHours());
                 st += c;
                 m.net -= c;
             }
@@ -404,8 +407,9 @@ public final class ReplicaManager {
     public void finish(double lastH, int lastQid, int nDays) {
         double frac = Math.max(0, lastH - period), st = 0;
         for (int d = 0; d < replicas.size(); d++) {
-            for (Replica m : replicas.get(d).values()) {
-                double c = cloud.storageCost(cat.size[d], frac * periodHours());
+            for (Map.Entry<Integer, Replica> en : replicas.get(d).entrySet()) {
+                Replica m = en.getValue();
+                double c = cloud.storageCost(en.getKey(), cat.size[d], frac * periodHours());
                 st += c;
                 m.net -= c;
                 recordOutcome(m, lastH, false);

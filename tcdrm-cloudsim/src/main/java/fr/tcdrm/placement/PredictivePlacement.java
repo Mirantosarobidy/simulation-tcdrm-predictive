@@ -271,7 +271,7 @@ public final class PredictivePlacement implements PlacementStrategy {
                     if (src < 0 || cc < bestC) { src = x; bestC = cc; }
                 }
                 create = bestC + cloud.io[s] * size;
-                store = cloud.storageCost(size, H * eng.periodHours());
+                store = cloud.storageCost(s, size, H * eng.periodHours());
                 copyH = cloud.latency(src, s, size) / (1000.0 * eng.periodSeconds);   // utilisable après sa copie
                 Consistency.Result p3 = null;
                 if (useP3) {

@@ -51,6 +51,19 @@ public final class SimConfig {
 
     public boolean has(String k) { return p.getProperty(k) != null; }
 
+    /** Noms de tous les paramètres. */
+    public java.util.Set<String> keys() { return p.stringPropertyNames(); }
+
+    /**
+     * Copie de la configuration où chaque paramètre « prefix.X » remplace « X »
+     * (par exemple real.cpu.AWS.US → cpu.AWS.US pour les prix publics de S3).
+     */
+    public SimConfig withPrefix(String prefix) {
+        Map<String, String> o = new java.util.HashMap<>();
+        for (String k : p.stringPropertyNames()) if (k.startsWith(prefix)) o.put(k.substring(prefix.length()), p.getProperty(k).trim());
+        return with(o);
+    }
+
     /** Copie de la configuration avec quelques paramètres remplacés (études de scalabilité). */
     public SimConfig with(Map<String, String> overrides) {
         Properties q = new Properties();

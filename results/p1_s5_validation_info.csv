@@ -1,0 +1,2 @@
+points,series,tertile_q1,tertile_q2,ema_alpha,train_windows,val_windows,selected_init
+1323,147,3.00000,3.92593,0.100000,9504,768,1

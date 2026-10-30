@@ -1,0 +1,25 @@
+scenario,strategy,site,replicas_mean_per_seed
+simple,TCDRM,Azure-UE,3.00000
+simple,TCDRM-Predictive,Azure-AS,3.00000
+simple,TCDRM-Predictive,Azure-US,3.00000
+simple,TCDRM-Predictive,Google-UE,3.00000
+simple,Predictive sans contraintes,Azure-US,3.00000
+simple,Predictive sans contraintes,Google-UE,3.00000
+simple,Predictive sans contraintes,Azure-AS,3.00000
+simple,Replicate-All,Azure-US,3.00000
+simple,Replicate-All,Google-UE,3.00000
+simple,Replicate-All,Azure-AS,3.00000
+simple,TCDRM,Azure-US,1.50000
+complex,TCDRM,Azure-UE,6.00000
+complex,TCDRM-Predictive,Azure-AS,5.90000
+complex,TCDRM-Predictive,Azure-US,6.00000
+complex,TCDRM-Predictive,Google-UE,5.00000
+complex,TCDRM-Predictive,Azure-UE,0.100000
+complex,Predictive sans contraintes,Azure-US,6.00000
+complex,Predictive sans contraintes,Google-UE,5.00000
+complex,Predictive sans contraintes,Azure-AS,6.00000
+complex,Replicate-All,Azure-US,6.00000
+complex,Replicate-All,Google-UE,5.00000
+complex,Replicate-All,Azure-AS,6.00000
+complex,TCDRM,AWS-US,2.50000
+complex,TCDRM,Azure-US,0.500000

@@ -1,0 +1,33 @@
+prices,strategy,site,replicas_mean_per_seed
+S5,TCDRM,Azure-US,1.36667
+S5,TCDRM,Azure-AS,1.26667
+S5,TCDRM,Google-US,2.13333
+S5,Replicate-All,Azure-US,2.40000
+S5,Replicate-All,Google-UE,2.26667
+S5,Replicate-All,Azure-AS,1.80000
+S5,P2,Azure-US,2.30000
+S5,P2,Google-UE,2.23333
+S5,P2,Azure-AS,1.93333
+S5,P1+P2,Azure-US,2.60000
+S5,P1+P2,Google-UE,2.46667
+S5,P1+P2,Azure-AS,2.03333
+S5,P3+P2,Azure-US,2.36667
+S5,P3+P2,Google-UE,2.20000
+S5,P3+P2,Azure-AS,1.96667
+S5,TCDRM-Predictive,Azure-US,2.60000
+S5,TCDRM-Predictive,Google-UE,2.46667
+S5,TCDRM-Predictive,Azure-AS,2.03333
+S5,Predictive sans contraintes,Azure-US,2.60000
+S5,Predictive sans contraintes,Google-UE,2.43333
+S5,Predictive sans contraintes,Azure-AS,2.03333
+S5,TCDRM,Google-UE,0.766667
+S5,TCDRM,Google-AS,0.300000
+S5,TCDRM,AWS-US,0.533333
+S5,P2,AWS-US,0.166667
+S5,P3+P2,AWS-US,0.133333
+S5,TCDRM,Azure-UE,0.466667
+S5,TCDRM,AWS-UE,0.333333
+S5,P2,Azure-UE,0.0666667
+S5,P1+P2,Azure-UE,0.0666667
+S5,P3+P2,Azure-UE,0.0666667
+S5,TCDRM-Predictive,Azure-UE,0.0666667

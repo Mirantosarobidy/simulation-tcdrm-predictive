@@ -1,0 +1,47 @@
+t,qid,type,rel,site,src,cost,level,relation,role,strategy
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,TCDRM
+0.124577,6,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,TCDRM
+20.1628,1008,create,27,Google-US,Google-UE,0.0107730,REGION,F65,commune,TCDRM
+20.1628,1008,create,161,Google-US,Azure-AS,0.0542880,PROVIDER,F18,fréquente,TCDRM
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,Replicate-All
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,Replicate-All
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,Replicate-All
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,Replicate-All
+20.1628,1008,create,27,Azure-AS,Azure-US,0.0454680,REGION,F65,commune,Replicate-All
+20.1628,1008,create,161,Azure-US,Azure-AS,0.0724680,REGION,F18,fréquente,Replicate-All
+20.1628,1008,create,161,Google-UE,Azure-US,0.0394380,PROVIDER,F18,fréquente,Replicate-All
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,P2
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,P2
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,P2
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,P2
+20.1628,1008,create,27,Azure-AS,Azure-US,0.0454680,REGION,F65,commune,P2
+20.1628,1008,create,161,Azure-US,Azure-AS,0.0724680,REGION,F18,fréquente,P2
+20.1628,1008,create,161,Google-UE,Azure-US,0.0394380,PROVIDER,F18,fréquente,P2
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,P1+P2
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,P1+P2
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,P1+P2
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,P1+P2
+20.1628,1008,create,27,Azure-AS,Azure-US,0.0454680,REGION,F65,commune,P1+P2
+20.1628,1008,create,161,Azure-US,Azure-AS,0.0724680,REGION,F18,fréquente,P1+P2
+20.1628,1008,create,161,Google-UE,Azure-US,0.0394380,PROVIDER,F18,fréquente,P1+P2
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,P3+P2
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,P3+P2
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,P3+P2
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,P3+P2
+20.1628,1008,create,27,Azure-AS,Azure-US,0.0454680,REGION,F65,commune,P3+P2
+20.1628,1008,create,161,Azure-US,Azure-AS,0.0724680,REGION,F18,fréquente,P3+P2
+20.1628,1008,create,161,Google-UE,Azure-US,0.0394380,PROVIDER,F18,fréquente,P3+P2
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,TCDRM-Predictive
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,TCDRM-Predictive
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,TCDRM-Predictive
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,TCDRM-Predictive
+20.1628,1008,create,27,Azure-AS,Azure-US,0.0454680,REGION,F65,commune,TCDRM-Predictive
+20.1628,1008,create,161,Azure-US,Azure-AS,0.0724680,REGION,F18,fréquente,TCDRM-Predictive
+20.1628,1008,create,161,Google-UE,Azure-US,0.0394380,PROVIDER,F18,fréquente,TCDRM-Predictive
+0.103342,5,create,77,Azure-US,AWS-US,0.0409680,PROVIDER,F157,partagée,Predictive sans contraintes
+0.103342,5,create,77,Google-UE,Azure-US,0.0394380,PROVIDER,F157,partagée,Predictive sans contraintes
+0.103342,5,create,77,Azure-AS,Azure-US,0.0229680,REGION,F157,partagée,Predictive sans contraintes
+20.1628,1008,create,27,Azure-AS,Google-UE,0.0507780,PROVIDER,F65,commune,Predictive sans contraintes
+20.1628,1008,create,27,Azure-US,Google-UE,0.0507780,PROVIDER,F65,commune,Predictive sans contraintes
+20.1628,1008,create,161,Google-UE,Azure-AS,0.0542880,PROVIDER,F18,fréquente,Predictive sans contraintes
+20.1628,1008,create,161,Azure-US,Google-UE,0.0507780,PROVIDER,F18,fréquente,Predictive sans contraintes

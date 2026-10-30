@@ -58,7 +58,7 @@ public final class ForecastValidation {
     }
 
     public void run() {
-        int W = c.integer("p1.window"), tau = c.integer("p2.horizon"), cycle = c.integer("s3.cycle");
+        int W = c.integer("p1.window"), tau = c.integer("p2.horizon"), cycle = c.integer("s4.cycle");
         int[] trainSeeds = ints(c, "p1.trainSeeds"), testSeeds = ints(c, "p1.testSeeds");
         int valSeed = c.integer("p1.valSeed"), nInits = c.integer("p1.inits");
 
@@ -105,7 +105,7 @@ public final class ForecastValidation {
             double t = 0;
             long n = 0;
             for (double[] s : valSeries) {
-                for (int e = W; e <= s.length - tau; e += 2) {
+                for (int e = Math.max(W, cycle); e <= s.length - tau; e += 2) {
                     t += Math.abs(PopularityForecaster.ema(s, e, a) - target(s, e, tau));
                     n++;
                 }
@@ -129,7 +129,7 @@ public final class ForecastValidation {
                 double[] ab = new double[M], sq = new double[M];
                 int n = 0;
                 double vol = 0;
-                for (int e = W; e <= s.length - tau; e += 2) {
+                for (int e = Math.max(W, cycle); e <= s.length - tau; e += 2) {
                     double y = target(s, e, tau);
                     double[] p = {
                             auto.lstmPredict(s, e), auto.predictSeries(s, e),

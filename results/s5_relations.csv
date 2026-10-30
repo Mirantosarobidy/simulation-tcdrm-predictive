@@ -1,0 +1,41 @@
+prices,strategy,role,created_mean,deleted_mean,active_end_mean
+S5,NoRepLc,partagée,0.00000,0.00000,0.00000
+S5,NoRepLc,commune,0.00000,0.00000,0.00000
+S5,NoRepLc,fréquente,0.00000,0.00000,0.00000
+S5,NoRepLc,intermittente,0.00000,0.00000,0.00000
+S5,NoRepLc,rare,0.00000,0.00000,0.00000
+S5,TCDRM,partagée,3.53333,0.833333,2.70000
+S5,TCDRM,commune,1.73333,0.600000,1.13333
+S5,TCDRM,fréquente,0.733333,0.0333333,0.700000
+S5,TCDRM,intermittente,1.03333,1.03333,0.00000
+S5,TCDRM,rare,0.133333,0.133333,0.00000
+S5,Replicate-All,partagée,2.73333,0.00000,2.73333
+S5,Replicate-All,commune,1.36667,0.00000,1.36667
+S5,Replicate-All,fréquente,1.03333,0.0333333,1.00000
+S5,Replicate-All,intermittente,1.16667,1.16667,0.00000
+S5,Replicate-All,rare,0.166667,0.166667,0.00000
+S5,P2,partagée,2.76667,0.0666667,2.70000
+S5,P2,commune,1.73333,0.00000,1.73333
+S5,P2,fréquente,0.833333,0.0333333,0.800000
+S5,P2,intermittente,1.20000,1.20000,0.00000
+S5,P2,rare,0.166667,0.166667,0.00000
+S5,P1+P2,partagée,2.76667,0.0666667,2.70000
+S5,P1+P2,commune,1.73333,0.00000,1.73333
+S5,P1+P2,fréquente,1.03333,0.0333333,1.00000
+S5,P1+P2,intermittente,1.46667,1.46667,0.00000
+S5,P1+P2,rare,0.166667,0.166667,0.00000
+S5,P3+P2,partagée,2.76667,0.0666667,2.70000
+S5,P3+P2,commune,1.73333,0.00000,1.73333
+S5,P3+P2,fréquente,0.866667,0.0333333,0.833333
+S5,P3+P2,intermittente,1.20000,1.20000,0.00000
+S5,P3+P2,rare,0.166667,0.166667,0.00000
+S5,TCDRM-Predictive,partagée,2.76667,0.0666667,2.70000
+S5,TCDRM-Predictive,commune,1.73333,0.00000,1.73333
+S5,TCDRM-Predictive,fréquente,1.03333,0.0333333,1.00000
+S5,TCDRM-Predictive,intermittente,1.46667,1.46667,0.00000
+S5,TCDRM-Predictive,rare,0.166667,0.166667,0.00000
+S5,Predictive sans contraintes,partagée,2.73333,0.00000,2.73333
+S5,Predictive sans contraintes,commune,1.73333,0.00000,1.73333
+S5,Predictive sans contraintes,fréquente,1.03333,0.0333333,1.00000
+S5,Predictive sans contraintes,intermittente,1.46667,1.46667,0.00000
+S5,Predictive sans contraintes,rare,0.100000,0.100000,0.00000

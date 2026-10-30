@@ -1,4 +1,4 @@
 method,count
 EMA,0
-REG,2
-LSTM,8377
+REG,73
+LSTM,515

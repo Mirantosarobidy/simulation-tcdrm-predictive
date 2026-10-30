@@ -24,7 +24,7 @@ public final class PopularityForecaster {
         this.tau = c.integer("p2.horizon");
         this.W = c.integer("p1.window");
         this.minLen = c.integer("p1.minLen");
-        this.cycle = c.integer("s3.cycle");
+        this.cycle = c.integer("s4.cycle");
         this.alpha = c.dbl("p1.ema.alpha");
         this.method = method;
         used.put("EMA", 0);
